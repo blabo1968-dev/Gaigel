@@ -443,16 +443,16 @@
         </div>
 
         <!-- ACTION BAR (MELDEN, 7ER RAUBEN, VERDECKT ANSPIELEN) -->
-        <div id="action-bar" class="w-full max-w-6xl mx-auto flex flex-wrap items-center justify-center gap-2 my-1 z-20 shrink-0 min-h-[34px]">
-            <button id="btn-toggle-facedown" class="hidden px-3 py-1.5 md:px-4 md:py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-amber-300 font-bold text-xs border border-amber-500/40 shadow-lg transition flex items-center gap-1.5">
+        <div id="action-bar" class="w-full max-w-6xl mx-auto flex flex-wrap items-center justify-center gap-1.5 sm:gap-2 my-1 px-1 z-30 shrink-0 min-h-[36px] relative">
+            <button id="btn-toggle-facedown" class="hidden px-2.5 py-1.5 md:px-4 md:py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-amber-300 font-bold text-xs border border-amber-500/40 shadow-lg transition flex items-center gap-1.5">
                 <span>🙈</span>
                 <span id="facedown-label">Verdeckt anspielen: AUS</span>
             </button>
-            <button id="btn-swap-trump" class="hidden px-3 py-1.5 md:px-4 md:py-2 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-black text-xs border border-amber-300 shadow-lg transition transform hover:scale-105 flex items-center gap-1.5">
+            <button id="btn-swap-trump" class="hidden px-2.5 py-1.5 md:px-4 md:py-2 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-black text-xs border border-amber-300 shadow-lg transition transform hover:scale-105 flex items-center gap-1.5">
                 <span>🔄</span>
                 <span>Trumpf rauben (7er)</span>
             </button>
-            <div id="last-meld-display" class="hidden px-3 py-1.5 rounded-xl bg-slate-900/85 border border-amber-500/40 text-amber-300 text-xs font-bold shadow-md"></div>
+            <div id="last-meld-display" class="hidden px-2.5 py-1 rounded-xl bg-slate-900/85 border border-amber-500/40 text-amber-300 text-[11px] sm:text-xs font-bold shadow-md"></div>
             <div id="meld-buttons-container" class="flex flex-wrap items-center justify-center gap-1.5">
                 <!-- Meld buttons rendered dynamically -->
             </div>
@@ -1520,29 +1520,41 @@
             const meldContainer = document.getElementById('meld-buttons-container');
             meldContainer.innerHTML = '';
 
+            const allPairsInHand = [];
+            for (const suitKey in SUITS) {
+                if (gameState.hands.PLAYER.some(c => c.suit === suitKey && c.rank === 'KING') && gameState.hands.PLAYER.some(c => c.suit === suitKey && c.rank === 'OBER')) {
+                    allPairsInHand.push(suitKey);
+                }
+            }
+
             if (gameState.turn === 'PLAYER' && gameState.phase === 'TALON' && gameState.teamTricks.US >= 1 && isLeading) {
                 const melds = getAvailableMelds(gameState.hands.PLAYER, 'US');
                 melds.forEach(m => {
                     const btn = document.createElement('button');
-                    btn.className = `px-3 py-1.5 rounded-xl font-black text-xs shadow-md border transition transform hover:scale-105 flex items-center gap-1.5 ${m.isTrump ? 'bg-amber-500 hover:bg-amber-400 text-slate-950 border-amber-300' : 'bg-slate-800 hover:bg-slate-700 text-amber-300 border-amber-500/40'}`;
-                    btn.innerHTML = `<span>Melden möglich:</span> ${getSuitSVG(m.suit, 16)} <span>(${m.points} Pkt)</span>`;
+                    btn.className = `px-3 py-2 rounded-xl font-black text-xs shadow-lg border-2 transition transform active:scale-95 hover:scale-105 flex items-center gap-1.5 touch-manipulation ${m.isTrump ? 'bg-amber-500 hover:bg-amber-400 text-slate-950 border-amber-200 animate-pulse' : 'bg-slate-800 hover:bg-slate-700 text-amber-300 border-amber-400'}`;
+                    btn.innerHTML = `<span>📣 Melden:</span> ${getSuitSVG(m.suit, 16)} <span>(${m.points} Pkt)</span>`;
                     btn.addEventListener('click', () => declareMeld(m.suit));
                     meldContainer.appendChild(btn);
                 });
 
                 const alreadyMelded = gameState.meldedSuits.US || [];
-                const repeated = [];
-                for (const suitKey in SUITS) {
-                    if (alreadyMelded.includes(suitKey) && gameState.hands.PLAYER.some(c => c.suit === suitKey && c.rank === 'KING') && gameState.hands.PLAYER.some(c => c.suit === suitKey && c.rank === 'OBER')) {
-                        repeated.push(suitKey);
-                    }
-                }
+                const repeated = allPairsInHand.filter(suitKey => alreadyMelded.includes(suitKey));
                 repeated.forEach(suitKey => {
                     const info = document.createElement('span');
-                    info.className = 'px-3 py-1.5 rounded-xl bg-slate-900/70 border border-slate-700 text-slate-400 text-xs font-bold flex items-center gap-1.5';
-                    info.innerHTML = `<span>✓ Bereits gemeldet:</span> ${getSuitSVG(suitKey, 16)} <span>${SUITS[suitKey].name}</span>`;
+                    info.className = 'px-2.5 py-1 rounded-xl bg-slate-900/70 border border-slate-700 text-slate-400 text-[11px] font-bold flex items-center gap-1.5';
+                    info.innerHTML = `<span>✓ Bereits gemeldet:</span> ${getSuitSVG(suitKey, 14)} <span>${SUITS[suitKey].name}</span>`;
                     meldContainer.appendChild(info);
                 });
+            } else if (gameState.turn === 'PLAYER' && allPairsInHand.length > 0 && gameState.phase === 'TALON') {
+                const unmeldedPairs = allPairsInHand.filter(suitKey => !(gameState.meldedSuits.US || []).includes(suitKey));
+                if (unmeldedPairs.length > 0) {
+                    const hint = document.createElement('span');
+                    hint.className = 'px-2.5 py-1 rounded-xl bg-slate-900/80 border border-amber-500/30 text-amber-200/80 text-[11px] font-medium';
+                    hint.innerText = gameState.teamTricks.US < 1
+                        ? '💡 Paar auf der Hand – Melden möglich nach dem 1. eigenen Stich'
+                        : '💡 Paar auf der Hand – Melden beim eigenen Anspielen möglich';
+                    meldContainer.appendChild(hint);
+                }
             }
 
             document.getElementById('last-trick-winner').innerText = gameState.lastTrickWinner || '-';
