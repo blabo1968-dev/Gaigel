@@ -392,24 +392,24 @@
                 <div id="floating-score-container" class="absolute inset-0 pointer-events-none z-40 flex items-center justify-center"></div>
 
                 <!-- Trick Container -->
-                <div class="relative w-full max-w-sm h-full flex flex-col items-center justify-center gap-2">
+                <div class="relative w-full h-full flex flex-col items-center justify-center gap-1.5 sm:gap-2 overflow-visible">
                     <!-- Top Played Card (AI in 2P / Partner in 4P) -->
-                    <div id="played-card-ai" class="transition-all duration-300 z-10 min-h-[var(--card-h)] flex items-center justify-center"></div>
+                    <div id="played-card-ai" class="transition-all duration-300 z-10 min-h-[calc(var(--card-h)*0.72)] sm:min-h-[calc(var(--card-h)*0.82)] flex items-center justify-center"></div>
 
                     <!-- Middle Row: West Card, Turn Prompt, East Card -->
-                    <div class="w-full flex items-center justify-center gap-2 sm:gap-3 z-20">
-                        <div id="played-card-west" class="hidden transition-all duration-300 -rotate-12"></div>
+                    <div class="w-full flex items-center justify-center gap-1.5 sm:gap-3 z-20">
+                        <div id="played-card-west" class="hidden transition-all duration-300 -rotate-6 sm:-rotate-12 shrink-0"></div>
 
                         <!-- Trick Winner Banner / Prompt -->
-                        <div id="trick-prompt" class="text-center py-1 px-3 md:py-1.5 md:px-4 rounded-full bg-slate-950/90 border border-amber-500/60 text-amber-300 text-[11px] md:text-xs font-bold shadow-2xl backdrop-blur max-w-max z-30 transition-all duration-300">
+                        <div id="trick-prompt" class="text-center py-1 px-2.5 sm:px-3 md:py-1.5 md:px-4 rounded-full bg-slate-950/90 border border-amber-500/60 text-amber-300 text-[10px] sm:text-[11px] md:text-xs font-bold shadow-2xl backdrop-blur max-w-max z-30 transition-all duration-300 shrink-0">
                             Du bist am Zug
                         </div>
 
-                        <div id="played-card-east" class="hidden transition-all duration-300 rotate-12"></div>
+                        <div id="played-card-east" class="hidden transition-all duration-300 rotate-6 sm:rotate-12 shrink-0"></div>
                     </div>
 
                     <!-- Player Played Card (Bottom) -->
-                    <div id="played-card-player" class="transition-all duration-300 z-20 min-h-[var(--card-h)] flex items-center justify-center"></div>
+                    <div id="played-card-player" class="transition-all duration-300 z-30 min-h-[calc(var(--card-h)*0.72)] sm:min-h-[calc(var(--card-h)*0.82)] flex items-center justify-center"></div>
                 </div>
             </div>
 
@@ -1433,11 +1433,11 @@
             if (gameState.turn !== 'PLAYER') {
                 topTurnInd.classList.toggle('hidden', gameState.turn !== 'TOP');
                 promptBox.innerText = `${getSeatDisplayName(gameState.turn)} am Zug...`;
-                promptBox.className = 'text-center py-1 px-3 md:py-1.5 md:px-4 rounded-full bg-slate-950/90 border border-indigo-500/60 text-indigo-300 text-[11px] md:text-xs font-bold shadow-xl backdrop-blur max-w-max z-30';
+                promptBox.className = 'text-center py-1 px-2.5 sm:px-3 md:py-1.5 md:px-4 rounded-full bg-slate-950/90 border border-indigo-500/60 text-indigo-300 text-[10px] sm:text-[11px] md:text-xs font-bold shadow-xl backdrop-blur max-w-max z-30 shrink-0';
             } else {
                 topTurnInd.classList.add('hidden');
                 promptBox.innerText = gameState.playFaceDownNext ? 'Du spielst verdeckt an...' : 'Du bist am Zug!';
-                promptBox.className = 'text-center py-1 px-3 md:py-1.5 md:px-4 rounded-full bg-slate-950/90 border border-amber-500/80 text-amber-300 text-[11px] md:text-xs font-bold shadow-xl backdrop-blur max-w-max z-30 animate-pulse';
+                promptBox.className = 'text-center py-1 px-2.5 sm:px-3 md:py-1.5 md:px-4 rounded-full bg-slate-950/90 border border-amber-500/80 text-amber-300 text-[10px] sm:text-[11px] md:text-xs font-bold shadow-xl backdrop-blur max-w-max z-30 animate-pulse shrink-0';
             }
 
             const playedSlots = {
