@@ -22,39 +22,6 @@
                 --card-w: min(130px, calc((100vw - 520px) / 5));
                 --hand-gap: clamp(5px, 0.55vw, 10px);
             }
-
-            /* Desktop: eigener, klar getrennter Tischaufbau.
-               Die Handy-Anordnung bleibt unverändert. */
-            main.table-felt {
-                display: grid !important;
-                grid-template-rows: auto minmax(0, 1fr) auto auto;
-                align-content: stretch;
-                justify-content: stretch;
-                gap: 4px;
-            }
-
-            main.table-felt > :first-child,
-            main.table-felt > #action-bar,
-            main.table-felt > :last-child {
-                width: min(1400px, 100%);
-                max-width: 1400px;
-                margin-left: auto;
-                margin-right: auto;
-            }
-
-            /* Mehr Platz für Talon + Trumpf links, damit nichts in die
-               Tischmitte oder den Spielerbereich hineinragt. */
-            main.table-felt > div:nth-child(2) {
-                width: min(1400px, 100%);
-                max-width: 1400px;
-                grid-template-columns: minmax(300px, 0.95fr) minmax(420px, 1.5fr) minmax(280px, 0.95fr);
-                margin-left: auto;
-                margin-right: auto;
-            }
-
-            #player-hand-container {
-                overflow: visible;
-            }
         }
 
         @media (max-height: 650px) and (min-width: 768px) {
