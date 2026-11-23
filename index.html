@@ -1029,7 +1029,14 @@
             const team = getSeatTeam(seat);
             const isLeading = gameState.trickCards.length === 0;
 
+            // KI darf nur melden oder mit dem 7er rauben, wenn ihr Team bereits einen Stich hat
             if (gameState.phase === 'TALON' && isLeading && gameState.teamTricks[team] > 0) {
+                // Erst 7er rauben, falls möglich – danach ggf. melden
+                if (canSwapTrump(hand)) {
+                    swapTrumpCard(seat);
+                }
+
+                // Nur melden, wenn das Paar nicht sofort unnötig zerrissen werden muss oder es Punkte bringt
                 const meld = findBestMeld(hand, team);
                 if (meld) {
                     const points = meld.suit === gameState.trumpSuit ? 40 : 20;
@@ -1049,27 +1056,22 @@
                     checkWinCondition();
                     if (!gameState.gameActive) return;
                 }
-
-                if (canSwapTrump(hand)) {
-                    swapTrumpCard(seat);
-                }
             }
 
             let cardIndex = 0;
             if (isLeading) {
-                cardIndex = chooseAILeadCard(hand);
+                cardIndex = chooseAILeadCard(seat, hand);
             } else {
                 cardIndex = chooseAIResponseCard(seat, hand);
             }
 
-            const isAIFaceDown = gameState.firstTrickOfGame && isLeading && Math.random() < 0.35;
+            const isAIFaceDown = gameState.firstTrickOfGame && isLeading && shouldAIDoFaceDownLead(seat, hand, cardIndex);
 
             const card = hand.splice(cardIndex, 1)[0];
             gameState.trickCards.push({ seat, card, faceDown: isAIFaceDown });
             sound.playCardSlide();
 
             if (isAIFaceDown) {
-                // Gegner gibt beim verdeckten Ausspielen offen zu erkennen: "zweite Alte" (Ass) oder "höher hat"
                 const callLabel = card.rank === 'ASS' ? 'zweite Alte (Ass)' : 'höher hat';
                 logMessage(`🙈 <strong>${getSeatDisplayName(seat)}</strong> spielt <strong>verdeckt</strong> an: <strong>${callLabel}</strong>!`);
             }
@@ -1077,7 +1079,38 @@
             advanceTurnAfterPlay();
         }
 
-        function chooseAILeadCard(hand) {
+        function countSuitInHand(hand, suitKey) {
+            return hand.filter(c => c.suit === suitKey).length;
+        }
+
+        function isPartOfUnmeldedPair(card, hand, team) {
+            if (card.rank !== 'KING' && card.rank !== 'OBER') return false;
+            const alreadyMelded = (gameState.meldedSuits[team] || []).includes(card.suit);
+            if (alreadyMelded) return false;
+            const partnerRank = card.rank === 'KING' ? 'OBER' : 'KING';
+            return hand.some(c => c.suit === card.suit && c.rank === partnerRank);
+        }
+
+        function shouldAIDoFaceDownLead(seat, hand, chosenIdx) {
+            const card = hand[chosenIdx];
+            if (!card || card.suit === gameState.trumpSuit) return false;
+
+            // Verdecktes Ass ("zweite Alte"): sinnvoll, wenn die KI ggf. noch ein zweites Ass derselben Farbe hat oder Punkte sichern will
+            if (card.rank === 'ASS') {
+                const hasSecondSameAce = hand.some((c, idx) => idx !== chosenIdx && c.suit === card.suit && c.rank === 'ASS');
+                return hasSecondSameAce || Math.random() < 0.45;
+            }
+
+            // Verdecktes "höher hat": sinnvoll mit hohem Nicht-Trumpf (Zehner/König/Ober), wenn noch Karten der Farbe da sind
+            if (card.order >= RANKS.OBER.order) {
+                return Math.random() < 0.45;
+            }
+
+            return false;
+        }
+
+        function chooseAILeadCard(seat, hand) {
+            const team = getSeatTeam(seat);
             let candidateIndices = hand.map((_, idx) => idx);
 
             if (gameState.firstTrickOfGame) {
@@ -1087,24 +1120,53 @@
                 }
             }
 
-            if (gameState.phase === 'TALON') {
-                let lowestIndex = candidateIndices[0];
-                let lowestVal = 99;
-                candidateIndices.forEach(idx => {
-                    const c = hand[idx];
-                    if (c.value < lowestVal) {
-                        lowestVal = c.value;
-                        lowestIndex = idx;
-                    }
-                });
-                return lowestIndex;
+            // Ungemeldete Paare (König + Ober) nach Möglichkeit erst nach dem Melden oder nur gezwungenermaßen anspielen
+            const nonPairCandidates = candidateIndices.filter(idx => !isPartOfUnmeldedPair(hand[idx], hand, team));
+            if (nonPairCandidates.length > 0) {
+                candidateIndices = nonPairCandidates;
             }
 
+            // In der Talon-Phase: gerne 7er/Unter oder lange Nicht-Trumpffarben anspielen, um Stiche zu machen (für Melden/7er-Raub)
+            if (gameState.phase === 'TALON') {
+                let bestLeadIdx = candidateIndices[0];
+                let bestLeadScore = -999;
+
+                candidateIndices.forEach(idx => {
+                    const c = hand[idx];
+                    let score = 0;
+
+                    if (c.suit === gameState.trumpSuit) {
+                        // Trumpf nur ungern früh anspielen, außer es ist eine kleine 7er/Unter zum Ziehen
+                        score -= 25;
+                        if (c.rank === 'SEVEN') score += 8;
+                    } else {
+                        // Nicht-Trumpf bevorzugen, besonders wenn die KI in dieser Farbe mehrere Karten hält
+                        score += 12 + countSuitInHand(hand, c.suit) * 4;
+                        // Kleine Karten (7, U) zuerst zum Anspielen, damit starke Karten (A, 10) nicht leicht weggeschnappt werden
+                        if (c.rank === 'SEVEN') score += 14;
+                        else if (c.rank === 'UNTER') score += 10;
+                        else if (c.rank === 'OBER') score += 4;
+                        else if (c.rank === 'KING') score += 2;
+                        else if (c.rank === 'TEN') score -= 4;
+                        else if (c.rank === 'ASS') score -= 6;
+                    }
+
+                    if (score > bestLeadScore) {
+                        bestLeadScore = score;
+                        bestLeadIdx = idx;
+                    }
+                });
+
+                return bestLeadIdx;
+            }
+
+            // In der strikten Phase (ohne Talon): Trumpf bzw. hohe Stiche gezielt einsetzen
             let bestIdx = candidateIndices[0];
-            let bestScore = -1;
+            let bestScore = -999;
             candidateIndices.forEach(idx => {
                 const c = hand[idx];
-                const score = c.value + (c.suit === gameState.trumpSuit ? 15 : 0);
+                const isTrump = c.suit === gameState.trumpSuit;
+                const score = (isTrump ? 25 : 0) + c.value * 2 + countSuitInHand(hand, c.suit);
                 if (score > bestScore) {
                     bestScore = score;
                     bestIdx = idx;
@@ -1114,10 +1176,24 @@
         }
 
         function chooseAIResponseCard(seat, hand) {
-            const leadCard = gameState.trickCards[0].card;
+            const team = getSeatTeam(seat);
+            const leadEntry = gameState.trickCards[0];
+            const leadCard = leadEntry.card;
             const currentWinnerSeat = evaluateTrickCards(gameState.trickCards);
-            const partnerCurrentlyWinning = getSeatTeam(currentWinnerSeat) === getSeatTeam(seat);
+            const partnerCurrentlyWinning = getSeatTeam(currentWinnerSeat) === team;
             const trickPointsSoFar = gameState.trickCards.reduce((sum, e) => sum + e.card.value, 0);
+            const isLastToPlay = gameState.trickCards.length === getActiveSeats().length - 1;
+
+            // Sonderfall 1. Stich verdeckt: "höher hat" -> möglichst höher als leadCard derselben Farbe bedienen
+            if (gameState.firstTrickOfGame && leadEntry.faceDown && leadCard.suit !== gameState.trumpSuit && leadCard.rank !== 'ASS') {
+                const sameSuitHigher = hand
+                    .map((c, idx) => ({ c, idx }))
+                    .filter(item => item.c.suit === leadCard.suit && item.c.order > leadCard.order)
+                    .sort((a, b) => a.c.order - b.c.order);
+                if (sameSuitHigher.length > 0) {
+                    return sameSuitHigher[0].idx;
+                }
+            }
 
             if (gameState.phase === 'STRICT') {
                 const validIndices = [];
@@ -1126,20 +1202,47 @@
                 });
 
                 if (validIndices.length > 0) {
+                    // Wenn der Stich viele Punkte bringt oder der Gegner ihn gerade hält: möglichst günstig gewinnen
                     if (!partnerCurrentlyWinning) {
-                        for (const idx of validIndices) {
-                            const simulated = [...gameState.trickCards, { seat, card: hand[idx] }];
-                            if (evaluateTrickCards(simulated) === seat) {
-                                return idx;
-                            }
+                        const winningOptions = validIndices
+                            .filter(idx => {
+                                const simulated = [...gameState.trickCards, { seat, card: hand[idx] }];
+                                return evaluateTrickCards(simulated) === seat;
+                            })
+                            .sort((a, b) => {
+                                const ca = hand[a];
+                                const cb = hand[b];
+                                const costA = (ca.suit === gameState.trumpSuit ? 20 : 0) + ca.value;
+                                const costB = (cb.suit === gameState.trumpSuit ? 20 : 0) + cb.value;
+                                return costA - costB;
+                            });
+
+                        if (winningOptions.length > 0 && (trickPointsSoFar >= 10 || isLastToPlay || gameState.teamTricks[team] === 0)) {
+                            return winningOptions[0];
                         }
                     }
 
+                    // Wenn Partner schon gewinnt: Punkte schmieren (Ass/10er) oder kleinste Karte ablegen
+                    if (partnerCurrentlyWinning && isLastToPlay && trickPointsSoFar >= 0) {
+                        let bestSchmierIdx = -1;
+                        let bestSchmierVal = 9;
+                        validIndices.forEach(idx => {
+                            const c = hand[idx];
+                            if (c.suit !== gameState.trumpSuit && c.value > bestSchmierVal && !isPartOfUnmeldedPair(c, hand, team)) {
+                                bestSchmierVal = c.value;
+                                bestSchmierIdx = idx;
+                            }
+                        });
+                        if (bestSchmierIdx !== -1) return bestSchmierIdx;
+                    }
+
                     let lowestIdx = validIndices[0];
-                    let lowestVal = 99;
+                    let lowestCost = 999;
                     validIndices.forEach(idx => {
-                        if (hand[idx].value < lowestVal) {
-                            lowestVal = hand[idx].value;
+                        const c = hand[idx];
+                        const cost = (c.suit === gameState.trumpSuit ? 30 : 0) + c.value + (isPartOfUnmeldedPair(c, hand, team) ? 15 : 0);
+                        if (cost < lowestCost) {
+                            lowestCost = cost;
                             lowestIdx = idx;
                         }
                     });
@@ -1147,34 +1250,63 @@
                 }
             }
 
+            // Im allerersten Stich gibt es keine Trumpfwirkung: KI sticht nicht mit Trumpf
             if (gameState.firstTrickOfGame) {
                 const nonTrumpIndices = hand.map((c, i) => c.suit !== gameState.trumpSuit ? i : -1).filter(i => i !== -1);
                 const pool = nonTrumpIndices.length > 0 ? nonTrumpIndices : hand.map((_, i) => i);
                 let lowestIdx = pool[0];
-                let minVal = 99;
+                let minVal = 999;
                 pool.forEach(i => {
-                    if (hand[i].value < minVal) {
-                        minVal = hand[i].value;
+                    const c = hand[i];
+                    const cost = c.value + (isPartOfUnmeldedPair(c, hand, team) ? 15 : 0);
+                    if (cost < minVal) {
+                        minVal = cost;
                         lowestIdx = i;
                     }
                 });
                 return lowestIdx;
             }
 
-            if (!partnerCurrentlyWinning && trickPointsSoFar >= 10) {
+            // In der Talon-Phase: wertvolle Stiche (>= 10 Augen) oder den allerersten Stich für Melden/7er-Raub gezielt mitnehmen
+            const wantsTrickInTalon = !partnerCurrentlyWinning && (
+                trickPointsSoFar >= 10 ||
+                (gameState.teamTricks[team] === 0 && trickPointsSoFar >= 4)
+            );
+
+            if (wantsTrickInTalon) {
+                // Bevorzugt mit gleicher Farbe stechen, sonst mit möglichst kleinem Trumpf
+                const sameSuitWinners = [];
+                const trumpWinners = [];
+
                 for (let i = 0; i < hand.length; i++) {
-                    const simulated = [...gameState.trickCards, { seat, card: hand[i] }];
+                    const c = hand[i];
+                    if (isPartOfUnmeldedPair(c, hand, team) && c.value < 10) continue;
+                    const simulated = [...gameState.trickCards, { seat, card: c }];
                     if (evaluateTrickCards(simulated) === seat) {
-                        return i;
+                        if (c.suit === leadCard.suit) {
+                            sameSuitWinners.push({ i, cost: c.value });
+                        } else if (c.suit === gameState.trumpSuit) {
+                            trumpWinners.push({ i, cost: c.value });
+                        }
                     }
+                }
+
+                if (sameSuitWinners.length > 0) {
+                    sameSuitWinners.sort((a, b) => a.cost - b.cost);
+                    return sameSuitWinners[0].i;
+                }
+                if (trumpWinners.length > 0 && trickPointsSoFar >= 10) {
+                    trumpWinners.sort((a, b) => a.cost - b.cost);
+                    return trumpWinners[0].i;
                 }
             }
 
-            if (partnerCurrentlyWinning && gameState.trickCards.length === getActiveSeats().length - 1) {
+            // Wenn Partner den Stich schon hat, schmiert die KI gerne Augen (Ass oder 10er ohne Trumpf)
+            if (partnerCurrentlyWinning && isLastToPlay) {
                 let bestSchmierIdx = -1;
                 let bestSchmierVal = 9;
                 hand.forEach((c, i) => {
-                    if (c.suit !== gameState.trumpSuit && c.value > bestSchmierVal) {
+                    if (c.suit !== gameState.trumpSuit && c.value > bestSchmierVal && !isPartOfUnmeldedPair(c, hand, team)) {
                         bestSchmierVal = c.value;
                         bestSchmierIdx = i;
                     }
@@ -1182,10 +1314,11 @@
                 if (bestSchmierIdx !== -1) return bestSchmierIdx;
             }
 
+            // Sonst möglichst billige Karte abwerfen und ungemeldete Paare schonen
             let lowestIdx = 0;
-            let minVal = 99;
+            let minVal = 999;
             hand.forEach((c, i) => {
-                const weight = (c.suit === gameState.trumpSuit ? 50 : 0) + c.value;
+                const weight = (c.suit === gameState.trumpSuit ? 45 : 0) + c.value + (isPartOfUnmeldedPair(c, hand, team) ? 15 : 0);
                 if (weight < minVal) {
                     minVal = weight;
                     lowestIdx = i;
