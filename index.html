@@ -409,6 +409,8 @@
                     <div id="trick-prompt" class="absolute left-1/2 bottom-1 -translate-x-1/2 text-center py-1 px-2.5 sm:px-3 md:py-1.5 md:px-4 rounded-full bg-slate-950/90 border border-amber-500/60 text-amber-300 text-[10px] sm:text-[11px] md:text-xs font-bold shadow-2xl backdrop-blur max-w-max z-30 transition-all duration-300">
                         Du bist am Zug
                     </div>
+                    <!-- Ansage beim verdeckten Anspielen im ersten Stich ("zweite Alte" = Ass oder "höher hat") -->
+                    <div id="facedown-call-banner" class="hidden absolute left-1/2 top-2 -translate-x-1/2 text-center py-1 px-2.5 sm:px-3 rounded-full bg-amber-950/95 border border-amber-400/80 text-amber-200 text-[10px] sm:text-xs font-bold shadow-xl backdrop-blur max-w-max z-30"></div>
                 </div>
             </div>
 
@@ -555,10 +557,15 @@
                 </section>
 
                 <section>
-                    <h3 class="font-bold text-amber-300 text-sm md:text-base mb-1">3. Spielverlauf &amp; Bedienpflicht</h3>
-                    <p>Der Gewinner eines Stichs zieht zuerst vom Talon, danach ziehen die übrigen Spieler, bis wieder jeder 5 Karten hat. Solange der Talon vorhanden ist, besteht <strong>keine Bedienpflicht</strong>.</p>
-                    <p class="mt-1">Ist der Talon aufgebraucht, gilt <strong>Farbzwang</strong>: Wer die ausgespielte Farbe hat, muss sie bedienen. Wer sie nicht hat, muss Trumpf spielen, sofern vorhanden; erst wenn auch kein Trumpf vorhanden ist, darf eine beliebige Karte abgelegt werden.</p>
-                    <p class="mt-1"><strong>Trumpf sticht Farbe</strong>. Bei gleicher Farbe gewinnt die höhere Karte. Bei zwei völlig gleichen Karten gewinnt die zuerst ausgespielte.</p>
+                    <h3 class="font-bold text-amber-300 text-sm md:text-base mb-1">3. Besondere Regeln für den ersten Stich</h3>
+                    <p><strong>Andere Alte hat:</strong> Wird ein Ass verdeckt ausgespielt und legen alle Spieler verdeckt ab, gewinnt das zweite Ass derselben Farbe, falls es im Stich liegt; sonst gewinnt die Vorhand.</p>
+                    <p class="mt-1"><strong>Ge-Elfen:</strong> Spielt die Vorhand ein Ass offen aus, gewinnen die Vorhand / das anspielende Team den Stich.</p>
+                    <p class="mt-1"><strong>Höher hat:</strong> Spielt die Vorhand eine Nicht-Trumpfkarte, die kein Ass ist, verdeckt aus, gewinnt die höchste Karte derselben Farbe; liegt keine höhere Karte derselben Farbe, gewinnt die Vorhand.</p>
+                </section>
+
+                <section>
+                    <h3 class="font-bold text-amber-300 text-sm md:text-base mb-1">4. Spielverlauf &amp; Bedienpflicht</h3>
+                    <p>Wer <strong>König und Ober</strong> derselben Farbe besitzt, darf nach einem bereits gewonnenen Stich melden, wenn er am Zug ist. Eine Meldung zählt <strong>20 Punkte</strong>, in der Trumpffarbe <strong>40 Punkte</strong>. Jede Farbe kann pro Partei nur einmal gemeldet werden.</p>
                 </section>
 
                 <section>
@@ -909,6 +916,41 @@
         }
 
         function evaluateTrickCards(trickEntries) {
+            // Sonderregeln für den allerersten Stich:
+            // 1. "Ge-Elfen": Vorhand spielt ein Ass offen aus -> Vorhand gewinnt.
+            // 2. "Andere Alte hat": Vorhand spielt ein Ass verdeckt aus und alle legen verdeckt ab ->
+            //    zweites Ass derselben Farbe gewinnt, sonst Vorhand.
+            // 3. "Höher hat": Vorhand spielt eine Nicht-Trumpfkarte (kein Ass) verdeckt aus ->
+            //    höchste Karte derselben Farbe gewinnt, sonst Vorhand.
+            if (gameState.firstTrickOfGame && trickEntries.length > 0) {
+                const leadEntry = trickEntries[0];
+                const leadCard = leadEntry.card;
+                const leadSeat = leadEntry.seat;
+                const allFaceDown = trickEntries.every(e => Boolean(e.faceDown));
+
+                if (leadCard.rank === 'ASS' && !leadEntry.faceDown) {
+                    return leadSeat;
+                }
+
+                if (leadCard.rank === 'ASS' && leadEntry.faceDown && allFaceDown) {
+                    const secondAceEntry = trickEntries.slice(1).find(
+                        e => e.card.suit === leadCard.suit && e.card.rank === 'ASS'
+                    );
+                    return secondAceEntry ? secondAceEntry.seat : leadSeat;
+                }
+
+                if (leadCard.suit !== gameState.trumpSuit && leadCard.rank !== 'ASS' && leadEntry.faceDown) {
+                    let highestSameSuit = leadEntry;
+                    for (let i = 1; i < trickEntries.length; i++) {
+                        const current = trickEntries[i];
+                        if (current.card.suit === leadCard.suit && current.card.order > highestSameSuit.card.order) {
+                            highestSameSuit = current;
+                        }
+                    }
+                    return highestSameSuit.seat;
+                }
+            }
+
             const trumpActive = !gameState.firstTrickOfGame;
             let bestEntry = trickEntries[0];
             for (let i = 1; i < trickEntries.length; i++) {
@@ -956,7 +998,9 @@
             sound.playCardSlide();
 
             if (isFaceDownPlay) {
-                logMessage(`🙈 Du spielst deine Karte <strong>verdeckt</strong> aus!`);
+                // "zweite Alte" steht für verdecktes Ass; sonst gilt "höher hat"
+                const callLabel = card.rank === 'ASS' ? 'zweite Alte (Ass)' : 'höher hat';
+                logMessage(`🙈 Du spielst <strong>verdeckt</strong> an: <strong>${callLabel}</strong>!`);
                 gameState.playFaceDownNext = false;
             }
 
@@ -1025,7 +1069,9 @@
             sound.playCardSlide();
 
             if (isAIFaceDown) {
-                logMessage(`🙈 <strong>${getSeatDisplayName(seat)}</strong> geht <strong>verdeckt runter</strong>!`);
+                // Gegner gibt beim verdeckten Ausspielen offen zu erkennen: "zweite Alte" (Ass) oder "höher hat"
+                const callLabel = card.rank === 'ASS' ? 'zweite Alte (Ass)' : 'höher hat';
+                logMessage(`🙈 <strong>${getSeatDisplayName(seat)}</strong> spielt <strong>verdeckt</strong> an: <strong>${callLabel}</strong>!`);
             }
 
             advanceTurnAfterPlay();
@@ -1456,6 +1502,22 @@
                     targetSlot.innerHTML = createCardSVG(entry.card.suit, entry.card.rank, !entry.faceDown);
                 }
             });
+
+            // Zeigt an, ob verdeckt mit "zweite Alte" (Ass) oder "höher hat" angespielt wurde
+            const faceDownBanner = document.getElementById('facedown-call-banner');
+            const faceDownLead = gameState.firstTrickOfGame && gameState.trickCards.length > 0 && gameState.trickCards[0].faceDown
+                ? gameState.trickCards[0]
+                : null;
+            if (faceDownBanner) {
+                if (faceDownLead) {
+                    const callText = faceDownLead.card.rank === 'ASS' ? 'zweite Alte (Ass)' : 'höher hat';
+                    faceDownBanner.innerText = `🙈 ${getSeatDisplayName(faceDownLead.seat)} verdeckt: ${callText}`;
+                    faceDownBanner.classList.remove('hidden');
+                } else {
+                    faceDownBanner.classList.add('hidden');
+                    faceDownBanner.innerText = '';
+                }
+            }
 
             const playerHandContainer = document.getElementById('player-hand-container');
             playerHandContainer.innerHTML = '';
