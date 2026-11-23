@@ -341,10 +341,10 @@
         </div>
 
         <!-- CENTER BOARD AREA (Talon + Trump + Played Trick Cards + Log) -->
-        <div class="relative flex-1 w-full max-w-6xl mx-auto grid grid-cols-[minmax(175px,0.8fr)_minmax(300px,1.5fr)_minmax(175px,0.8fr)] items-center gap-2 lg:gap-4 my-1 md:my-2 min-h-0">
+        <div class="relative flex-1 w-full max-w-6xl mx-auto flex items-center justify-center my-1 md:my-2 min-h-0">
 
             <!-- LEFT: TALON & TRUMP STACK + WEST SEAT (IN 4P MODE) -->
-            <div class="flex flex-col items-start gap-2 z-10 min-w-0 pl-1 sm:pl-2">
+            <div class="absolute left-1 sm:left-2 top-1/2 -translate-y-1/2 flex flex-col items-start gap-2 z-10 min-w-0">
                 <!-- West Opponent Badge (only in Kreuzgaigel 4P) -->
                 <div id="west-seat-box" class="hidden items-center gap-1.5 bg-slate-900/90 backdrop-blur border border-rose-500/40 px-2 py-1 rounded-xl shadow-lg">
                     <div class="relative">
@@ -385,36 +385,35 @@
                 </div>
             </div>
 
-            <!-- CENTER: TRICK PLAY AREA -->
-            <div class="relative min-w-0 flex items-center justify-center h-full">
+            <!-- CENTER: TRICK PLAY AREA (Exakt in der Bildschirmmitte, Karten überlappend wie auf dem echten Spieltisch) -->
+            <div class="relative w-full h-full flex items-center justify-center pointer-events-none">
 
                 <!-- Floating score notification container -->
                 <div id="floating-score-container" class="absolute inset-0 pointer-events-none z-40 flex items-center justify-center"></div>
 
                 <!-- Trick Container -->
-                <div class="relative w-full h-full flex flex-col items-center justify-center gap-1.5 sm:gap-2 overflow-visible">
+                <div class="relative w-full h-full flex items-center justify-center">
                     <!-- Top Played Card (AI in 2P / Partner in 4P) -->
-                    <div id="played-card-ai" class="transition-all duration-300 z-10 min-h-[calc(var(--card-h)*0.72)] sm:min-h-[calc(var(--card-h)*0.82)] flex items-center justify-center"></div>
+                    <div id="played-card-ai" class="absolute left-1/2 top-1/2 -translate-x-[58%] -translate-y-[66%] -rotate-6 transition-all duration-300 z-10"></div>
 
-                    <!-- Middle Row: West Card, Turn Prompt, East Card -->
-                    <div class="w-full flex items-center justify-center gap-1.5 sm:gap-3 z-20">
-                        <div id="played-card-west" class="hidden transition-all duration-300 -rotate-6 sm:-rotate-12 shrink-0"></div>
+                    <!-- West Played Card (Left - 4P only) -->
+                    <div id="played-card-west" class="hidden absolute left-1/2 top-1/2 -translate-x-[88%] -translate-y-[50%] -rotate-12 transition-all duration-300 z-15"></div>
 
-                        <!-- Trick Winner Banner / Prompt -->
-                        <div id="trick-prompt" class="text-center py-1 px-2.5 sm:px-3 md:py-1.5 md:px-4 rounded-full bg-slate-950/90 border border-amber-500/60 text-amber-300 text-[10px] sm:text-[11px] md:text-xs font-bold shadow-2xl backdrop-blur max-w-max z-30 transition-all duration-300 shrink-0">
-                            Du bist am Zug
-                        </div>
+                    <!-- East Played Card (Right - 4P only) -->
+                    <div id="played-card-east" class="hidden absolute left-1/2 top-1/2 -translate-x-[12%] -translate-y-[50%] rotate-12 transition-all duration-300 z-20"></div>
 
-                        <div id="played-card-east" class="hidden transition-all duration-300 rotate-6 sm:rotate-12 shrink-0"></div>
+                    <!-- Player Played Card (Bottom - überlappt leicht über der vorherigen Karte) -->
+                    <div id="played-card-player" class="absolute left-1/2 top-1/2 -translate-x-[42%] -translate-y-[34%] rotate-3 transition-all duration-300 z-25"></div>
+
+                    <!-- Trick Winner Banner / Prompt -->
+                    <div id="trick-prompt" class="absolute left-1/2 bottom-1 -translate-x-1/2 text-center py-1 px-2.5 sm:px-3 md:py-1.5 md:px-4 rounded-full bg-slate-950/90 border border-amber-500/60 text-amber-300 text-[10px] sm:text-[11px] md:text-xs font-bold shadow-2xl backdrop-blur max-w-max z-30 transition-all duration-300">
+                        Du bist am Zug
                     </div>
-
-                    <!-- Player Played Card (Bottom) -->
-                    <div id="played-card-player" class="transition-all duration-300 z-30 min-h-[calc(var(--card-h)*0.72)] sm:min-h-[calc(var(--card-h)*0.82)] flex items-center justify-center"></div>
                 </div>
             </div>
 
             <!-- RIGHT: EAST SEAT (IN 4P MODE) + GAME LOG -->
-            <div class="flex flex-col items-end gap-2 z-10 min-w-0">
+            <div class="absolute right-1 sm:right-2 top-1/2 -translate-y-1/2 flex flex-col items-end gap-2 z-10 min-w-0">
                 <!-- East Opponent Badge (only in Kreuzgaigel 4P) -->
                 <div id="east-seat-box" class="hidden items-center gap-1.5 bg-slate-900/90 backdrop-blur border border-rose-500/40 px-2 py-1 rounded-xl shadow-lg">
                     <div class="relative">
@@ -1433,11 +1432,11 @@
             if (gameState.turn !== 'PLAYER') {
                 topTurnInd.classList.toggle('hidden', gameState.turn !== 'TOP');
                 promptBox.innerText = `${getSeatDisplayName(gameState.turn)} am Zug...`;
-                promptBox.className = 'text-center py-1 px-2.5 sm:px-3 md:py-1.5 md:px-4 rounded-full bg-slate-950/90 border border-indigo-500/60 text-indigo-300 text-[10px] sm:text-[11px] md:text-xs font-bold shadow-xl backdrop-blur max-w-max z-30 shrink-0';
+                promptBox.className = 'absolute left-1/2 bottom-1 -translate-x-1/2 text-center py-1 px-2.5 sm:px-3 md:py-1.5 md:px-4 rounded-full bg-slate-950/90 border border-indigo-500/60 text-indigo-300 text-[10px] sm:text-[11px] md:text-xs font-bold shadow-xl backdrop-blur max-w-max z-30';
             } else {
                 topTurnInd.classList.add('hidden');
                 promptBox.innerText = gameState.playFaceDownNext ? 'Du spielst verdeckt an...' : 'Du bist am Zug!';
-                promptBox.className = 'text-center py-1 px-2.5 sm:px-3 md:py-1.5 md:px-4 rounded-full bg-slate-950/90 border border-amber-500/80 text-amber-300 text-[10px] sm:text-[11px] md:text-xs font-bold shadow-xl backdrop-blur max-w-max z-30 animate-pulse shrink-0';
+                promptBox.className = 'absolute left-1/2 bottom-1 -translate-x-1/2 text-center py-1 px-2.5 sm:px-3 md:py-1.5 md:px-4 rounded-full bg-slate-950/90 border border-amber-500/80 text-amber-300 text-[10px] sm:text-[11px] md:text-xs font-bold shadow-xl backdrop-blur max-w-max z-30 animate-pulse';
             }
 
             const playedSlots = {
