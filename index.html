@@ -759,6 +759,19 @@
         // GAME STATE
         let gameMode = '2P'; // '2P' or '4P'
         let gameState = null;
+        let aiTimerId = null;
+
+        function scheduleAITurn(seat, delay = 550) {
+            if (aiTimerId) {
+                clearTimeout(aiTimerId);
+                aiTimerId = null;
+            }
+            if (!gameState || gameState.gameOver || gameState.isResolvingTrick || seat === 'player') return;
+            aiTimerId = setTimeout(() => {
+                aiTimerId = null;
+                runAITurn(seat);
+            }, delay);
+        }
 
         function buildDeck() {
             const deck = [];
@@ -1017,7 +1030,7 @@
                 gameState.turn = getNextSeat(seat);
                 updateUI();
                 if (gameState.turn !== 'player') {
-                    setTimeout(() => runAITurn(gameState.turn), 650);
+                    scheduleAITurn(gameState.turn, 550);
                 }
             }
         }
@@ -1112,7 +1125,7 @@
 
             updateUI();
             if (gameState.turn !== 'player') {
-                setTimeout(() => runAITurn(gameState.turn), 650);
+                scheduleAITurn(gameState.turn, 550);
             }
         }
 
@@ -1151,7 +1164,7 @@
 
         // TAKTISCHE KI-LOGIK
         function runAITurn(seat) {
-            if (gameState.gameOver || gameState.isResolvingTrick || gameState.turn !== seat) return;
+            if (!gameState || gameState.gameOver || gameState.isResolvingTrick || gameState.turn !== seat) return;
 
             const isLead = gameState.currentTrick.length === 0;
             if (isLead) {
@@ -1161,7 +1174,12 @@
                 const melds = getAvailableMelds(seat);
                 if (melds.length > 0) {
                     melds.sort((a, b) => b.points - a.points);
-                    if (executeMeld(seat, melds[0].suit)) return;
+                    if (executeMeld(seat, melds[0].suit)) {
+                        if (!gameState.gameOver) {
+                            scheduleAITurn(seat, 450);
+                        }
+                        return;
+                    }
                 }
             }
 
