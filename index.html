@@ -850,6 +850,7 @@
                 firstTrickMode: null,
                 isResolvingTrick: false,
                 lastMeldText: '',
+                playedHistory: [],
                 gameOver: false
             };
 
@@ -1091,6 +1092,7 @@
 
         function resolveTrick() {
             const trick = gameState.currentTrick;
+            trick.forEach(t => gameState.playedHistory.push({ suit: t.card.suit, rank: t.card.rank }));
             const winnerSeat = evaluateTrickCards(trick, gameState.trumpSuit, gameState.trickNumber, gameState.firstTrickMode);
             const winnerTeam = getTeam(winnerSeat);
             const points = trick.reduce((sum, item) => sum + RANKS[item.card.rank].points, 0);
@@ -1163,6 +1165,20 @@
         }
 
         // TAKTISCHE KI-LOGIK
+        function countPlayedCard(suit, rank) {
+            if (!gameState || !gameState.playedHistory) return 0;
+            return gameState.playedHistory.filter(c => c.suit === suit && c.rank === rank).length;
+        }
+
+        function isCardBoss(card, hand) {
+            const higherRanks = Object.keys(RANKS).filter(r => RANKS[r].order > RANKS[card.rank].order);
+            for (const r of higherRanks) {
+                const inHand = hand.filter(c => c.suit === card.suit && c.rank === r).length;
+                if (countPlayedCard(card.suit, r) + inHand < 2) return false;
+            }
+            return true;
+        }
+
         function runAITurn(seat) {
             if (!gameState || gameState.gameOver || gameState.isResolvingTrick || gameState.turn !== seat) return;
 
@@ -1188,19 +1204,28 @@
 
             const team = getTeam(seat);
             const hand = gameState.hands[seat];
-            const isPairCard = (c) => (c.rank === 'KING' || c.rank === 'OBER') &&
-                !gameState.meldedSuits[team].has(c.suit) &&
-                hand.some(o => o.suit === c.suit && o.rank === (c.rank === 'KING' ? 'OBER' : 'KING'));
+            const unmeldedMelds = [];
+            for (const s of Object.keys(SUITS)) {
+                if (!gameState.meldedSuits[team].has(s) &&
+                    hand.some(c => c.suit === s && c.rank === 'KING') &&
+                    hand.some(c => c.suit === s && c.rank === 'OBER')) {
+                    unmeldedMelds.push(s);
+                }
+            }
+            const hasPendingMeld = unmeldedMelds.length > 0 && !isTalonEmpty();
+            const isPairCard = (c) => (c.rank === 'KING' || c.rank === 'OBER') && unmeldedMelds.includes(c.suit);
+            const talonAlmostEmpty = gameState.talon.length <= 2;
 
             let chosen = legal[0];
             let playFaceDown = false;
 
             if (isLead) {
-                // Im 1. Stich ggf. Ass offen (Ge-Elfen) oder verdeckt (zweite Alte) spielen
                 if (gameState.trickNumber === 1) {
-                    const nonTrumpAce = legal.find(c => c.rank === 'ASS' && c.suit !== gameState.trumpSuit);
-                    if (nonTrumpAce) {
-                        chosen = nonTrumpAce;
+                    // Im 1. Stich Ass nur anspielen, wenn nicht beide Asse auf der Hand gehalten werden (sonst Risiko bei "zweite Alte" entfällt)
+                    const nonTrumpAces = legal.filter(c => c.rank === 'ASS' && c.suit !== gameState.trumpSuit);
+                    const safeAce = nonTrumpAces.find(a => hand.filter(h => h.suit === a.suit && h.rank === 'ASS').length === 1);
+                    if (safeAce) {
+                        chosen = safeAce;
                         playFaceDown = Math.random() < 0.35;
                     } else {
                         const lowSafe = legal.filter(c => !isPairCard(c)).sort((a, b) => RANKS[a.rank].order - RANKS[b.rank].order);
@@ -1209,18 +1234,42 @@
                 } else {
                     const nonPair = legal.filter(c => !isPairCard(c));
                     const pool = nonPair.length > 0 ? nonPair : legal;
-                    // Wenn noch kein Stich gemacht wurde, gerne mit starker Karte Stich holen für Melden/7er-Raub
-                    if (gameState.tricksCount[team] === 0) {
-                        pool.sort((a, b) => RANKS[b.rank].order - RANKS[a.rank].order);
-                        chosen = pool[0];
+
+                    // Boss-Karten (z. B. freies Ass oder Zehner, wenn beide Asse weg sind) im Endspiel oder für wichtigen Stich ausspielen
+                    const bossCards = pool.filter(c => (c.rank === 'ASS' || c.rank === 'TEN') && isCardBoss(c, hand));
+
+                    if ((gameState.tricksCount[team] === 0 || hasPendingMeld || talonAlmostEmpty || isTalonEmpty()) && bossCards.length > 0) {
+                        bossCards.sort((a, b) => RANKS[b.rank].points - RANKS[a.rank].points);
+                        chosen = bossCards[0];
+                    } else if (gameState.tricksCount[team] === 0 || hasPendingMeld) {
+                        // Aktiv um ersten Stich kämpfen, um melden / 7er rauben zu können
+                        const nonTrumpStrong = pool.filter(c => c.suit !== gameState.trumpSuit).sort((a, b) => RANKS[b.rank].order - RANKS[a.rank].order);
+                        chosen = (nonTrumpStrong.length > 0 ? nonTrumpStrong : pool.sort((a, b) => RANKS[b.rank].order - RANKS[a.rank].order))[0];
                     } else {
-                        const nonTrumpLow = pool.filter(c => c.suit !== gameState.trumpSuit).sort((a, b) => RANKS[a.rank].order - RANKS[b.rank].order);
-                        chosen = (nonTrumpLow.length > 0 ? nonTrumpLow : pool.sort((a, b) => RANKS[a.rank].order - RANKS[b.rank].order))[0];
+                        // Sonst sichere niedrige Karte (7er/Unter/Ober) anspielen, hohe 10er ohne Boss-Status nicht blind opfern
+                        const lowNonTrump = pool.filter(c => c.suit !== gameState.trumpSuit && RANKS[c.rank].points <= 4)
+                            .sort((a, b) => RANKS[a.rank].order - RANKS[b.rank].order);
+                        const anyNonTrump = pool.filter(c => c.suit !== gameState.trumpSuit)
+                            .sort((a, b) => RANKS[a.rank].order - RANKS[b.rank].order);
+                        chosen = (lowNonTrump[0] || anyNonTrump[0] || pool.sort((a, b) => RANKS[a.rank].order - RANKS[b.rank].order)[0]);
                     }
                 }
             } else {
                 const trick = gameState.currentTrick;
+                const leadCard = trick[0].card;
                 const trickPoints = trick.reduce((s, t) => s + RANKS[t.card.rank].points, 0);
+
+                // Sonderfall 1. Stich verdeckt "höher hat"
+                if (gameState.trickNumber === 1 && gameState.firstTrickMode === 'HOEHER_HAT') {
+                    const higherSameSuit = legal.filter(c => c.suit === leadCard.suit && RANKS[c.rank].order > RANKS[leadCard.rank].order && !isPairCard(c))
+                        .sort((a, b) => RANKS[a.rank].order - RANKS[b.rank].order);
+                    if (higherSameSuit.length > 0 && (trickPoints >= 4 || hasPendingMeld)) {
+                        chosen = higherSameSuit[0];
+                        playCard(seat, chosen.id, false);
+                        return;
+                    }
+                }
+
                 const winningCards = legal.filter(c => {
                     const sim = [...trick, { seat, card: c, faceDown: false }];
                     return evaluateTrickCards(sim, gameState.trumpSuit, gameState.trickNumber, gameState.firstTrickMode) === seat;
@@ -1228,28 +1277,57 @@
 
                 const currentWinner = evaluateTrickCards(trick, gameState.trumpSuit, gameState.trickNumber, gameState.firstTrickMode);
                 const partnerWinning = getTeam(currentWinner) === team;
+                const isLastToAct = trick.length === gameState.seats.length - 1;
 
-                if (partnerWinning && trick.length === gameState.seats.length - 1) {
-                    // Partner gewinnt bereits sicher -> Augen schmieren (ohne Paar zu zerreißen)
-                    const smear = legal.filter(c => !isPairCard(c) && c.suit !== gameState.trumpSuit)
+                if (partnerWinning && isLastToAct) {
+                    // Partner gewinnt bereits sicher -> Augen schmieren (Zehner/Ass), Paare und Trümpfe schonen
+                    const smear = legal.filter(c => !isPairCard(c) && c.suit !== gameState.trumpSuit && RANKS[c.rank].points >= 10)
                         .sort((a, b) => RANKS[b.rank].points - RANKS[a.rank].points);
-                    chosen = smear.length > 0 ? smear[0] : legal.sort((a, b) => RANKS[a.rank].order - RANKS[b.rank].order)[0];
-                } else if (winningCards.length > 0 && (trickPoints >= 10 || gameState.tricksCount[team] === 0 || isTalonEmpty())) {
-                    // Stich günstig mit kleinster gewinnender Karte sichern
-                    winningCards.sort((a, b) => {
-                        const aTrump = a.suit === gameState.trumpSuit ? 1 : 0;
-                        const bTrump = b.suit === gameState.trumpSuit ? 1 : 0;
-                        if (aTrump !== bTrump) return aTrump - bTrump;
-                        return RANKS[a.rank].order - RANKS[b.rank].order;
-                    });
-                    chosen = winningCards[0];
+                    if (smear.length > 0) {
+                        chosen = smear[0];
+                    } else {
+                        const safeLow = legal.filter(c => !isPairCard(c) && c.suit !== gameState.trumpSuit)
+                            .sort((a, b) => RANKS[a.rank].order - RANKS[b.rank].order);
+                        chosen = (safeLow[0] || legal.sort((a, b) => RANKS[a.rank].order - RANKS[b.rank].order)[0]);
+                    }
                 } else {
-                    // Niedrigste Karte abwerfen, Paare schonen
-                    const safeDiscard = legal.filter(c => !isPairCard(c) && c.suit !== gameState.trumpSuit)
+                    // Wann soll die KI den Stich aktiv gewinnen?
+                    // 1. Bei >= 10 Augen im Stich, 2. wenn noch 0 Stiche, 3. wenn ungemeldetes Paar auf der Hand liegt (Anspielrecht!), 4. im Endspiel oder wenn günstig ohne Trumpf-Opfer stechbar
+                    const cheapNonTrumpWinners = winningCards.filter(c => c.suit !== gameState.trumpSuit && !isPairCard(c))
                         .sort((a, b) => RANKS[a.rank].order - RANKS[b.rank].order);
-                    const fallbackDiscard = legal.filter(c => !isPairCard(c))
+                    const trumpWinners = winningCards.filter(c => c.suit === gameState.trumpSuit && !isPairCard(c))
                         .sort((a, b) => RANKS[a.rank].order - RANKS[b.rank].order);
-                    chosen = (safeDiscard[0] || fallbackDiscard[0] || legal[0]);
+
+                    const wantTrick = trickPoints >= 10 ||
+                        gameState.tricksCount[team] === 0 ||
+                        hasPendingMeld ||
+                        isTalonEmpty() ||
+                        (cheapNonTrumpWinners.length > 0 && trickPoints >= 2);
+
+                    if (wantTrick && (cheapNonTrumpWinners.length > 0 || trumpWinners.length > 0)) {
+                        if (cheapNonTrumpWinners.length > 0) {
+                            chosen = cheapNonTrumpWinners[0];
+                        } else if (trickPoints >= 10 || gameState.tricksCount[team] === 0 || hasPendingMeld || isTalonEmpty()) {
+                            chosen = trumpWinners[0];
+                        } else {
+                            // Kleiner Stich (0-4 Pkt) -> keinen wertvollen Trumpf verschwenden, lieber klein abwerfen
+                            const lowDiscard = legal.filter(c => !isPairCard(c) && c.suit !== gameState.trumpSuit && RANKS[c.rank].points <= 4)
+                                .sort((a, b) => RANKS[a.rank].order - RANKS[b.rank].order);
+                            chosen = (lowDiscard[0] || trumpWinners[0]);
+                        }
+                    } else if (winningCards.length > 0 && (trickPoints >= 10 || isTalonEmpty())) {
+                        winningCards.sort((a, b) => RANKS[a.rank].order - RANKS[b.rank].order);
+                        chosen = winningCards[0];
+                    } else {
+                        // Stich verloren -> konsequent 0–4-Punkte-Karten abwerfen und Zehner/Asse/Trümpfe retten!
+                        const lowSafeDiscard = legal.filter(c => !isPairCard(c) && c.suit !== gameState.trumpSuit && RANKS[c.rank].points <= 4)
+                            .sort((a, b) => RANKS[a.rank].points - RANKS[b.rank].points || RANKS[a.rank].order - RANKS[b.rank].order);
+                        const anyNonTrumpDiscard = legal.filter(c => !isPairCard(c) && c.suit !== gameState.trumpSuit)
+                            .sort((a, b) => RANKS[a.rank].points - RANKS[b.rank].points);
+                        const anySafeDiscard = legal.filter(c => !isPairCard(c))
+                            .sort((a, b) => RANKS[a.rank].points - RANKS[b.rank].points);
+                        chosen = (lowSafeDiscard[0] || anyNonTrumpDiscard[0] || anySafeDiscard[0] || legal[0]);
+                    }
                 }
             }
 
