@@ -8,25 +8,22 @@
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800;900&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
         :root {
-            /* Flüssige Kartenbreite: 5 Karten passen immer nebeneinander */
-            --card-w: min(13vw, calc((100vw - 28px) / 5));
+            --card-w: min(17vw, calc((100vw - 32px) / 5));
             --card-h: calc(var(--card-w) * 1.54);
-            --hand-overlap: 0px;
-            --hand-gap: clamp(3px, 0.45vw, 8px);
-            --table-pad: clamp(6px, 1.4vh, 16px);
+            --hand-gap: clamp(3px, 0.5vw, 8px);
+            --table-pad: clamp(6px, 1.4vh, 14px);
         }
 
         @media (min-width: 768px) {
             :root {
-                /* Desktop: fünf Karten sauber nebeneinander, ohne Überlappung */
-                --card-w: min(130px, calc((100vw - 520px) / 5));
+                --card-w: min(124px, calc((100vw - 520px) / 5));
                 --hand-gap: clamp(5px, 0.55vw, 10px);
             }
         }
 
         @media (max-height: 650px) and (min-width: 768px) {
             :root {
-                --card-w: min(105px, calc((100vw - 520px) / 5));
+                --card-w: min(98px, calc((100vw - 520px) / 5));
                 --table-pad: 4px;
             }
         }
@@ -54,23 +51,20 @@
             font-family: 'Cinzel', serif;
         }
 
-        /* Felt table texture illusion */
         .table-felt {
             background-color: #153e29;
             background-image:
                 radial-gradient(rgba(255, 255, 255, 0.04) 1px, transparent 0),
-                radial-gradient(rgba(0, 0, 0, 0.15) 100%, transparent 0);
+                radial-gradient(rgba(0, 0, 0, 0.18) 100%, transparent 0);
             background-size: 20px 20px, 100% 100%;
-            box-shadow: inset 0 0 120px rgba(0, 0, 0, 0.7);
+            box-shadow: inset 0 0 120px rgba(0, 0, 0, 0.72);
         }
 
-        /* Card Sizing Utilities */
         .card-dimensions {
             width: var(--card-w);
             height: var(--card-h);
         }
 
-        /* Responsive Hand Container: alle Karten gut sichtbar und ohne störendes Überlappen */
         .hand-fan {
             display: flex;
             justify-content: center;
@@ -82,34 +76,9 @@
         }
 
         .hand-fan > * {
-            margin-left: 0;
             flex: 0 0 auto;
         }
 
-        @media (max-width: 767px) {
-            .hand-fan {
-                overflow-x: auto;
-                overflow-y: hidden;
-                justify-content: flex-start;
-                padding-left: 2px;
-                padding-right: 2px;
-                scrollbar-width: thin;
-            }
-
-            #ai-hand-container {
-                min-height: calc(var(--card-h) + 4px);
-            }
-
-            #player-hand-container {
-                min-height: calc(var(--card-h) + 6px);
-            }
-
-            .max-w-6xl {
-                max-width: 100%;
-            }
-        }
-
-        /* Card Interactions */
         .card-container {
             transition: transform 0.22s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.2s ease, filter 0.2s ease;
             transform-origin: center bottom;
@@ -117,7 +86,7 @@
         }
 
         .card-container:hover:not(.disabled) {
-            transform: translateY(-16px) scale(1.04);
+            transform: translateY(-14px) scale(1.04);
             z-index: 30 !important;
             box-shadow: 0 16px 24px -4px rgba(0, 0, 0, 0.6);
         }
@@ -127,12 +96,20 @@
         }
 
         .card-disabled {
-            opacity: 0.45;
-            filter: grayscale(40%);
+            opacity: 0.48;
+            filter: grayscale(35%);
             cursor: not-allowed;
         }
 
-        /* Floating Score Text Animation */
+        @keyframes trickPlaySlide {
+            0% { opacity: 0.35; transform: scale(0.92); }
+            100% { opacity: 1; transform: scale(1); }
+        }
+
+        .animate-trick-card {
+            animation: trickPlaySlide 0.22s ease-out;
+        }
+
         @keyframes floatUp {
             0% { opacity: 0; transform: translateY(12px) scale(0.85); }
             20% { opacity: 1; transform: translateY(-8px) scale(1.1); }
@@ -144,7 +121,6 @@
             animation: floatUp 1.8s ease-out forwards;
         }
 
-        /* Custom Scrollbar */
         .custom-scrollbar::-webkit-scrollbar {
             width: 4px;
         }
@@ -156,31 +132,36 @@
             border-radius: 2px;
         }
 
-        /* Württembergische Kartenoptik */
+        /* Klassische württembergische Kartenoptik */
         .old-card {
-            background: #f6eedb !important;
-            border: 1.5px solid #4d402f !important;
-            border-radius: 5px !important;
-            box-shadow: 0 3px 8px rgba(0, 0, 0, 0.45), inset 0 0 0 1px rgba(255, 255, 255, 0.8);
-            color: #2f281f !important;
+            background: linear-gradient(155deg, #fbf4e4 0%, #f3e6ca 65%, #e9d7b3 100%) !important;
+            border: 1.5px solid #4e3f2c !important;
+            border-radius: 6px !important;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.48), inset 0 0 0 1px rgba(255, 255, 255, 0.78);
+            color: #2b2218 !important;
             position: relative;
             overflow: hidden !important;
         }
-        .old-card:before {
+
+        .old-card::before {
             content: "";
             position: absolute;
             inset: 2px;
-            border: 1px solid #b9a27d;
-            border-radius: 3px;
+            border: 1px solid #b49b72;
+            border-radius: 4px;
             pointer-events: none;
+            z-index: 2;
         }
+
         .old-card-art {
             position: absolute;
-            inset: 12px 8px 10px;
+            inset: 11px 7px 10px;
             display: flex;
             align-items: center;
             justify-content: center;
+            z-index: 1;
         }
+
         .old-corner {
             position: absolute;
             z-index: 5;
@@ -188,35 +169,27 @@
             flex-direction: column;
             align-items: center;
             line-height: 1;
-            gap: 0;
+            gap: 1px;
         }
-        .old-corner.top {
-            top: 3px;
-            left: 4px;
-        }
-        .old-corner.bottom {
-            right: 4px;
-            bottom: 3px;
-            transform: rotate(180deg);
-        }
+
+        .old-corner.tl { top: 3px; left: 4px; }
+        .old-corner.tr { top: 3px; right: 4px; }
+        .old-corner.bl { bottom: 3px; left: 4px; transform: rotate(180deg); }
+        .old-corner.br { bottom: 3px; right: 4px; transform: rotate(180deg); }
+
         .old-index {
             font-family: Georgia, serif;
             font-weight: 900;
-            font-size: 11px;
-            color: #3c3328;
+            font-size: clamp(8px, 1.35vw, 11px);
+            color: #2b2218;
             line-height: 1;
         }
-        .old-mini {
-            font-family: Georgia, serif;
-            font-size: 6px;
-            font-weight: 700;
-            color: #6a5740;
-            letter-spacing: 0.2px;
-        }
+
         .old-back {
             background: #efe2c4 !important;
             border-color: #51351f !important;
         }
+
         .old-back-inner {
             position: absolute;
             inset: 4px;
@@ -226,31 +199,33 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            background: #8e2d2d;
+            background: #872929;
         }
+
         .old-back-pattern {
             position: absolute;
             inset: 4px;
             border: 1px solid #d5b56e;
             background:
-                repeating-linear-gradient(45deg, transparent 0 5px, rgba(238, 208, 137, 0.18) 5px 7px),
-                repeating-linear-gradient(-45deg, transparent 0 5px, rgba(238, 208, 137, 0.14) 5px 7px);
+                repeating-linear-gradient(45deg, transparent 0 5px, rgba(238, 208, 137, 0.2) 5px 7px),
+                repeating-linear-gradient(-45deg, transparent 0 5px, rgba(238, 208, 137, 0.16) 5px 7px);
         }
+
         .old-back-medallion {
             position: relative;
             font-family: Georgia, serif;
             font-weight: 900;
             color: #e4c77f;
             border: 1px solid #d8bb78;
-            padding: 4px 6px;
-            background: #7e2828;
-            font-size: 14px;
+            padding: 3px 6px;
+            background: #772323;
+            font-size: clamp(10px, 1.8vw, 14px);
         }
     </style>
 </head>
 <body class="flex flex-col text-slate-100">
 
-    <!-- TOP HEADER / TOOLBAR -->
+    <!-- TOP HEADER -->
     <header class="bg-slate-950/85 backdrop-blur-md border-b border-amber-900/40 px-2 py-1.5 md:px-5 md:py-2.5 flex items-center justify-between gap-1 z-30 shadow-md shrink-0">
         <div class="flex items-center gap-1.5 md:gap-3 shrink-0">
             <div class="w-7 h-7 md:w-9 md:h-9 rounded-lg bg-gradient-to-br from-amber-500 to-amber-700 flex items-center justify-center font-cinzel font-black text-slate-950 text-base md:text-xl shadow shrink-0">
@@ -262,11 +237,10 @@
             </div>
         </div>
 
-        <!-- Target & Match Score Overview -->
-        <div class="hidden xs:flex sm:flex items-center gap-2 sm:gap-4 bg-slate-900/80 px-2 py-1 md:px-4 md:py-1.5 rounded-full border border-slate-700/60 shadow-inner shrink-0">
+        <div class="hidden sm:flex items-center gap-2 sm:gap-4 bg-slate-900/80 px-2 py-1 md:px-4 md:py-1.5 rounded-full border border-slate-700/60 shadow-inner shrink-0">
             <div class="text-center px-1">
                 <span class="block text-[8px] md:text-[10px] uppercase text-slate-400 font-bold tracking-wider">Modus</span>
-                <button id="btn-toggle-mode" class="font-black text-amber-400 hover:text-amber-300 text-[10px] md:text-xs leading-none underline decoration-dotted" title="Spielmodus wechseln">2er Gaigel</button>
+                <button id="btn-toggle-mode" class="font-black text-amber-400 hover:text-amber-300 text-[10px] md:text-xs leading-none underline decoration-dotted">2er Gaigel</button>
             </div>
             <div class="h-4 w-px bg-slate-700"></div>
             <div class="text-center px-1">
@@ -280,7 +254,6 @@
             </div>
         </div>
 
-        <!-- Controls -->
         <div class="flex items-center gap-1 sm:gap-1.5 md:gap-2 shrink-0">
             <button id="btn-mode-mobile" class="sm:hidden px-1.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-amber-400 text-[10px] font-bold border border-amber-500/40 whitespace-nowrap">
                 2er
@@ -301,15 +274,14 @@
         </div>
     </header>
 
-    <!-- MAIN GAME FELT TABLE -->
+    <!-- MAIN GAME TABLE -->
     <main class="flex-1 table-felt relative flex flex-col justify-between p-[var(--table-pad)] overflow-hidden">
 
-        <!-- OPPONENT / PARTNER AREA (TOP) -->
-        <div class="flex items-center justify-between w-full max-w-6xl mx-auto z-10 shrink-0">
-            <!-- Top Seat Profile & Score -->
-            <div class="flex items-center gap-2 md:gap-3 bg-slate-900/85 backdrop-blur border border-slate-700/80 p-1.5 md:p-2.5 rounded-2xl shadow-lg">
+        <!-- TOP OPPONENT / PARTNER AREA -->
+        <div class="flex items-center justify-between w-full max-w-6xl mx-auto z-10 shrink-0 gap-2">
+            <div class="flex items-center gap-2 md:gap-3 bg-slate-900/85 backdrop-blur border border-slate-700/80 p-1.5 md:p-2.5 rounded-2xl shadow-lg shrink-0">
                 <div class="relative">
-                    <div id="top-seat-avatar" class="w-9 h-9 md:w-11 md:h-11 rounded-xl bg-gradient-to-br from-indigo-700 to-slate-800 flex items-center justify-center font-bold text-lg md:text-xl border border-indigo-400 shadow">
+                    <div id="top-seat-avatar" class="w-8 h-8 md:w-11 md:h-11 rounded-xl bg-gradient-to-br from-indigo-700 to-slate-800 flex items-center justify-center font-bold text-base md:text-xl border border-indigo-400 shadow">
                         🤖
                     </div>
                     <span id="ai-turn-indicator" class="hidden absolute -top-1 -right-1 flex h-3.5 w-3.5">
@@ -318,124 +290,103 @@
                     </span>
                 </div>
                 <div>
-                    <div class="flex items-center gap-1.5">
-                        <span id="top-seat-name" class="font-bold text-xs md:text-sm text-slate-100">Gegner (KI)</span>
-                    </div>
+                    <span id="top-seat-name" class="block font-bold text-[11px] md:text-sm text-slate-100 leading-tight">Gegner (KI)</span>
                     <div class="flex items-baseline gap-1">
-                        <span id="ai-score" class="text-lg md:text-2xl font-black text-amber-400 leading-none">0</span>
+                        <span id="ai-score" class="text-base md:text-2xl font-black text-amber-400 leading-none">0</span>
                         <span id="ai-score-label" class="text-[10px] md:text-xs text-slate-400">Pkt</span>
                     </div>
                 </div>
             </div>
 
-            <!-- Top Seat Cards (Face down) -->
-            <div id="ai-hand-container" class="hand-fan py-1">
-                <!-- AI / Partner cards generated dynamically -->
-            </div>
+            <div id="ai-hand-container" class="hand-fan py-0.5 flex-1 min-w-0"></div>
 
-            <!-- Opponent / Team Tricks Stack Info -->
-            <div class="flex flex-col items-end bg-slate-900/70 p-1.5 md:p-2 rounded-xl border border-slate-800 text-[10px] md:text-xs">
+            <div class="flex flex-col items-end bg-slate-900/70 p-1.5 md:p-2 rounded-xl border border-slate-800 text-[10px] md:text-xs shrink-0">
                 <span id="top-tricks-label" class="text-slate-400 uppercase font-bold text-[9px]">Stiche</span>
                 <span id="ai-tricks-count" class="font-bold text-slate-200">0</span>
             </div>
         </div>
 
-        <!-- CENTER BOARD AREA (Talon + Trump + Played Trick Cards + Log) -->
-        <div class="relative flex-1 w-full max-w-6xl mx-auto flex items-center justify-center my-1 md:my-2 min-h-0">
+        <!-- CENTER BOARD AREA: ZENTRIERTE STICHMITTE -->
+        <div class="relative flex-1 w-full max-w-6xl mx-auto flex items-center justify-between gap-2 my-1 min-h-0">
 
-            <!-- LEFT: TALON & TRUMP STACK + WEST SEAT (IN 4P MODE) -->
-            <div class="absolute left-1 sm:left-2 top-1/2 -translate-y-1/2 flex flex-col items-start gap-2 z-10 min-w-0">
-                <!-- West Opponent Badge (only in Kreuzgaigel 4P) -->
+            <!-- LEFT: TALON & TRUMP -->
+            <div class="flex flex-col items-start gap-2 z-20 shrink-0 pl-1 sm:pl-2">
                 <div id="west-seat-box" class="hidden items-center gap-1.5 bg-slate-900/90 backdrop-blur border border-rose-500/40 px-2 py-1 rounded-xl shadow-lg">
                     <div class="relative">
                         <span class="text-sm md:text-base">🦊</span>
                         <span id="west-turn-dot" class="hidden absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-amber-400 animate-ping"></span>
                     </div>
                     <div>
-                        <div class="text-[10px] md:text-xs font-bold text-rose-300 leading-none">Gegner Links</div>
-                        <div class="text-[9px] md:text-[10px] text-slate-300 mt-0.5"><span id="west-cards-count">5</span> Karten</div>
+                        <div class="text-[10px] md:text-xs font-bold text-rose-300 leading-none">Links</div>
+                        <div class="text-[9px] md:text-[10px] text-slate-300 mt-0.5"><span id="west-cards-count">5</span> K.</div>
                     </div>
                 </div>
 
-                <div class="flex flex-col sm:flex-row items-center gap-1.5 sm:gap-3 md:gap-4">
+                <div class="flex flex-col sm:flex-row items-center gap-1.5 sm:gap-3">
                     <div class="relative card-dimensions flex items-center justify-center">
-                        <!-- Face-up Trump Card protruding clearly beneath Talon -->
-                        <div id="trump-card-slot" class="absolute translate-x-4 sm:translate-x-5 rotate-90 shadow-2xl transition-all duration-300">
-                            <!-- Trump card rendered here -->
-                        </div>
-
-                        <!-- Face-down Talon Stack -->
-                        <div id="talon-stack" class="relative z-10 card-dimensions -translate-x-1.5 sm:-translate-x-2 bg-gradient-to-br from-indigo-950 via-slate-900 to-indigo-900 rounded-xl border-2 border-indigo-400/50 shadow-2xl flex flex-col items-center justify-center text-center p-1 cursor-pointer transition transform hover:scale-105">
-                            <div class="w-full h-full border border-indigo-300/20 rounded-lg flex flex-col items-center justify-center bg-indigo-950/40">
-                                <span class="font-cinzel text-amber-400 font-black text-[10px] sm:text-base md:text-lg leading-tight">TALON</span>
-                                <span id="talon-count" class="text-[10px] sm:text-xs font-bold text-slate-200 mt-0.5">37</span>
+                        <div id="trump-card-slot" class="absolute translate-x-4 sm:translate-x-5 rotate-90 shadow-2xl transition-all duration-300"></div>
+                        <div id="talon-stack" class="relative z-10 card-dimensions -translate-x-1.5 sm:-translate-x-2 old-card old-back shadow-2xl flex flex-col items-center justify-center text-center cursor-pointer transition transform hover:scale-105">
+                            <div class="old-back-inner flex-col gap-0.5">
+                                <div class="old-back-pattern"></div>
+                                <span class="relative font-cinzel text-[#f4d78c] font-black text-[9px] sm:text-xs tracking-wider leading-none bg-[#772323]/90 px-1.5 py-0.5 border border-[#d8bb78]">TALON</span>
+                                <span id="talon-count" class="relative text-[10px] sm:text-xs font-black text-amber-200 bg-[#5d1a1a]/90 px-1.5 rounded">37</span>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Trump Info Box (Visible on both Mobile & Desktop) -->
-                    <div class="flex flex-col bg-slate-900/90 backdrop-blur border border-amber-500/50 px-2 py-1 sm:p-2 md:p-3 rounded-xl shadow-lg mt-1 sm:mt-0">
-                        <span class="text-[8px] sm:text-[9px] md:text-[10px] uppercase tracking-wider text-slate-400 font-bold leading-none">Trumpf</span>
-                        <div class="flex items-center gap-1 sm:gap-1.5 mt-0.5">
-                            <span id="trump-suit-icon" class="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6 flex items-center justify-center shrink-0"></span>
-                            <span id="trump-suit-name" class="font-bold text-amber-300 text-[11px] sm:text-xs md:text-sm leading-none"></span>
+                    <div class="flex flex-col bg-slate-900/90 backdrop-blur border border-amber-500/50 px-2 py-1 sm:p-2 md:p-2.5 rounded-xl shadow-lg mt-1 sm:mt-0">
+                        <span class="text-[8px] sm:text-[9px] uppercase tracking-wider text-slate-400 font-bold leading-none">Trumpf</span>
+                        <div class="flex items-center gap-1 mt-0.5">
+                            <span id="trump-suit-icon" class="w-4 h-4 sm:w-5 sm:h-5 flex items-center justify-center shrink-0"></span>
+                            <span id="trump-suit-name" class="font-bold text-amber-300 text-[10px] sm:text-xs leading-none"></span>
                         </div>
                         <span id="trump-swap-hint" class="text-[8px] sm:text-[9px] text-amber-400/90 mt-0.5 hidden font-semibold">💡 7er Tausch</span>
                     </div>
                 </div>
             </div>
 
-            <!-- CENTER: TRICK PLAY AREA (Exakt in der Bildschirmmitte, Karten überlappend wie auf dem echten Spieltisch) -->
-            <div class="relative w-full h-full flex items-center justify-center pointer-events-none">
-
-                <!-- Floating score notification container -->
+            <!-- CENTER: EXAKT ZENTRIERTE GESPIELTE KARTEN -->
+            <div class="absolute inset-0 pointer-events-none flex items-center justify-center z-10">
                 <div id="floating-score-container" class="absolute inset-0 pointer-events-none z-40 flex items-center justify-center"></div>
 
-                <!-- Trick Container -->
-                <div class="relative w-full h-full flex items-center justify-center">
-                    <!-- Top Played Card (AI in 2P / Partner in 4P) -->
-                    <div id="played-card-ai" class="absolute left-1/2 top-1/2 -translate-x-[58%] -translate-y-[66%] -rotate-6 transition-all duration-300 z-10"></div>
+                <div class="relative w-44 sm:w-64 h-40 sm:h-56 flex items-center justify-center">
+                    <!-- Top Played Card -->
+                    <div id="played-card-ai" class="absolute left-1/2 top-1/2 -translate-x-[58%] -translate-y-[74%] -rotate-3 transition-all duration-300 z-10"></div>
 
-                    <!-- West Played Card (Left - 4P only) -->
-                    <div id="played-card-west" class="hidden absolute left-1/2 top-1/2 -translate-x-[88%] -translate-y-[50%] -rotate-12 transition-all duration-300 z-15"></div>
+                    <!-- West Played Card (4P) -->
+                    <div id="played-card-west" class="hidden absolute left-1/2 top-1/2 -translate-x-[96%] -translate-y-[52%] -rotate-12 transition-all duration-300 z-15"></div>
 
-                    <!-- East Played Card (Right - 4P only) -->
-                    <div id="played-card-east" class="hidden absolute left-1/2 top-1/2 -translate-x-[12%] -translate-y-[50%] rotate-12 transition-all duration-300 z-20"></div>
+                    <!-- East Played Card (4P) -->
+                    <div id="played-card-east" class="hidden absolute left-1/2 top-1/2 -translate-x-[4%] -translate-y-[48%] rotate-12 transition-all duration-300 z-15"></div>
 
-                    <!-- Player Played Card (Bottom - überlappt leicht über der vorherigen Karte) -->
-                    <div id="played-card-player" class="absolute left-1/2 top-1/2 -translate-x-[42%] -translate-y-[34%] rotate-3 transition-all duration-300 z-25"></div>
+                    <!-- Player Played Card (überlappt leicht in der Mitte) -->
+                    <div id="played-card-player" class="absolute left-1/2 top-1/2 -translate-x-[42%] -translate-y-[26%] rotate-3 transition-all duration-300 z-20"></div>
 
-                    <!-- Trick Winner Banner / Prompt -->
-                    <div id="trick-prompt" class="absolute left-1/2 bottom-1 -translate-x-1/2 text-center py-1 px-2.5 sm:px-3 md:py-1.5 md:px-4 rounded-full bg-slate-950/90 border border-amber-500/60 text-amber-300 text-[10px] sm:text-[11px] md:text-xs font-bold shadow-2xl backdrop-blur max-w-max z-30 transition-all duration-300">
+                    <!-- Status-Hinweis -->
+                    <div id="trick-prompt" class="absolute -bottom-2 sm:bottom-0 left-1/2 -translate-x-1/2 text-center py-1 px-3 rounded-full bg-slate-950/90 border border-amber-500/60 text-amber-300 text-[10px] sm:text-xs font-bold shadow-2xl backdrop-blur whitespace-nowrap z-30">
                         Du bist am Zug
                     </div>
-                    <!-- Ansage beim verdeckten Anspielen im ersten Stich ("zweite Alte" = Ass oder "höher hat") -->
-                    <div id="facedown-call-banner" class="hidden absolute left-1/2 top-2 -translate-x-1/2 text-center py-1 px-2.5 sm:px-3 rounded-full bg-amber-950/95 border border-amber-400/80 text-amber-200 text-[10px] sm:text-xs font-bold shadow-xl backdrop-blur max-w-max z-30"></div>
                 </div>
             </div>
 
-            <!-- RIGHT: EAST SEAT (IN 4P MODE) + GAME LOG -->
-            <div class="absolute right-1 sm:right-2 top-1/2 -translate-y-1/2 flex flex-col items-end gap-2 z-10 min-w-0">
-                <!-- East Opponent Badge (only in Kreuzgaigel 4P) -->
+            <!-- RIGHT: EAST SEAT & LOG -->
+            <div class="flex flex-col items-end gap-2 z-20 shrink-0 ml-auto">
                 <div id="east-seat-box" class="hidden items-center gap-1.5 bg-slate-900/90 backdrop-blur border border-rose-500/40 px-2 py-1 rounded-xl shadow-lg">
                     <div class="relative">
                         <span class="text-sm md:text-base">🐺</span>
                         <span id="east-turn-dot" class="hidden absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-amber-400 animate-ping"></span>
                     </div>
                     <div>
-                        <div class="text-[10px] md:text-xs font-bold text-rose-300 leading-none">Gegner Rechts</div>
-                        <div class="text-[9px] md:text-[10px] text-slate-300 mt-0.5"><span id="east-cards-count">5</span> Karten</div>
+                        <div class="text-[10px] md:text-xs font-bold text-rose-300 leading-none">Rechts</div>
+                        <div class="text-[9px] md:text-[10px] text-slate-300 mt-0.5"><span id="east-cards-count">5</span> K.</div>
                     </div>
                 </div>
 
-                <!-- GAME LOG & ACTION ANNOUNCEMENTS -->
-                <div class="hidden lg:flex w-52 md:w-60 h-44 md:h-52 bg-slate-900/85 backdrop-blur border border-slate-700/80 rounded-2xl p-2.5 flex-col justify-between shadow-xl">
+                <div class="hidden lg:flex w-56 h-48 bg-slate-900/85 backdrop-blur border border-slate-700/80 rounded-2xl p-2.5 flex-col justify-between shadow-xl">
                     <div class="text-[10px] font-bold uppercase tracking-wider text-amber-400/90 border-b border-slate-800 pb-1">
                         Spielverlauf
                     </div>
-                    <div id="game-log" class="flex-1 overflow-y-auto custom-scrollbar text-[11px] text-slate-300 my-1 pr-1 space-y-0.5">
-                        <!-- Log messages -->
-                    </div>
+                    <div id="game-log" class="flex-1 overflow-y-auto custom-scrollbar text-[11px] text-slate-300 my-1 pr-1 space-y-0.5"></div>
                     <div id="last-trick-summary" class="text-[10px] text-slate-400 border-t border-slate-800 pt-1 flex justify-between">
                         <span>Letzter Stich:</span>
                         <span id="last-trick-winner" class="font-bold text-amber-300">-</span>
@@ -445,33 +396,28 @@
         </div>
 
         <!-- ACTION BAR (MELDEN, 7ER RAUBEN, VERDECKT ANSPIELEN) -->
-        <div id="action-bar" class="w-full max-w-6xl mx-auto flex flex-wrap items-center justify-center gap-1.5 sm:gap-2 my-1 px-1 z-30 shrink-0 min-h-[36px] relative">
-            <button id="btn-toggle-facedown" class="hidden px-2.5 py-1.5 md:px-4 md:py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-amber-300 font-bold text-xs border border-amber-500/40 shadow-lg transition flex items-center gap-1.5">
+        <div id="action-bar" class="w-full max-w-6xl mx-auto flex flex-wrap items-center justify-center gap-1.5 my-1 z-20 shrink-0 min-h-[34px]">
+            <button id="btn-toggle-facedown" class="hidden px-2.5 py-1.5 md:px-4 md:py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-amber-300 font-bold text-[11px] md:text-xs border border-amber-500/40 shadow-lg transition flex items-center gap-1.5">
                 <span>🙈</span>
                 <span id="facedown-label">Verdeckt anspielen: AUS</span>
             </button>
-            <button id="btn-swap-trump" class="hidden px-2.5 py-1.5 md:px-4 md:py-2 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-black text-xs border border-amber-300 shadow-lg transition transform hover:scale-105 flex items-center gap-1.5">
+            <button id="btn-swap-trump" class="hidden px-2.5 py-1.5 md:px-4 md:py-2 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-black text-[11px] md:text-xs border border-amber-300 shadow-lg transition flex items-center gap-1.5">
                 <span>🔄</span>
                 <span>Trumpf rauben (7er)</span>
             </button>
-            <div id="last-meld-display" class="hidden px-2.5 py-1 rounded-xl bg-slate-900/85 border border-amber-500/40 text-amber-300 text-[11px] sm:text-xs font-bold shadow-md"></div>
-            <div id="meld-buttons-container" class="flex flex-wrap items-center justify-center gap-1.5">
-                <!-- Meld buttons rendered dynamically -->
-            </div>
+            <div id="last-meld-display" class="hidden px-2.5 py-1 rounded-xl bg-slate-900/85 border border-amber-500/40 text-amber-300 text-[11px] md:text-xs font-bold shadow-md"></div>
+            <div id="meld-buttons-container" class="flex flex-wrap items-center justify-center gap-1.5"></div>
         </div>
 
-        <!-- PLAYER HAND & USER SCORE AREA -->
+        <!-- PLAYER HAND & SCORE AREA -->
         <div class="w-full max-w-6xl mx-auto z-20 shrink-0">
             <div class="flex items-center justify-between mb-1">
-                <!-- Player Profile & Score -->
                 <div class="flex items-center gap-2 md:gap-3 bg-slate-900/90 backdrop-blur border border-amber-500/40 px-2.5 py-1 md:px-3 md:py-1.5 rounded-2xl shadow-xl">
                     <div class="w-8 h-8 md:w-10 md:h-10 rounded-xl bg-gradient-to-br from-amber-500 to-amber-700 flex items-center justify-center font-bold text-slate-950 text-base md:text-lg shadow">
                         👤
                     </div>
                     <div>
-                        <div class="flex items-center gap-1.5">
-                            <span id="bottom-seat-name" class="font-bold text-xs md:text-sm text-slate-100">Du (Spieler)</span>
-                        </div>
+                        <span id="bottom-seat-name" class="block font-bold text-xs md:text-sm text-slate-100 leading-tight">Du (Spieler)</span>
                         <div class="flex items-baseline gap-1">
                             <span id="player-score" class="text-lg md:text-2xl font-black text-amber-400 leading-none">0</span>
                             <span id="player-score-label" class="text-[10px] md:text-xs text-slate-400">Pkt</span>
@@ -479,7 +425,6 @@
                     </div>
                 </div>
 
-                <!-- Studio Brand Credit & Tricks -->
                 <div class="flex items-center gap-3">
                     <span class="hidden md:inline text-[10px] text-amber-200/60 font-semibold tracking-wider uppercase">Blankenhagen Spieleentwicklung</span>
                     <div class="flex items-center gap-2 bg-slate-900/70 px-2.5 py-1 rounded-xl border border-slate-800 text-[10px] md:text-xs">
@@ -489,12 +434,31 @@
                 </div>
             </div>
 
-            <!-- Player Hand Cards -->
-            <div id="player-hand-container" class="hand-fan py-1 min-h-[calc(var(--card-h)+8px)]">
-                <!-- Cards rendered dynamically -->
-            </div>
+            <div id="player-hand-container" class="hand-fan py-1 min-h-[calc(var(--card-h)+8px)]"></div>
         </div>
     </main>
+
+    <!-- GAME OVER MODAL -->
+    <div id="modal-gameover" class="hidden fixed inset-0 bg-slate-950/85 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="bg-slate-900 border-2 border-amber-500/60 w-full max-w-md rounded-3xl p-6 shadow-2xl text-center">
+            <div id="gameover-emoji" class="text-5xl mb-2">🏆</div>
+            <h2 id="gameover-title" class="font-cinzel text-2xl md:text-3xl font-black text-amber-400 mb-1">Gewonnen!</h2>
+            <p id="gameover-reason" class="text-sm text-slate-300 mb-4">Du hast 101 Punkte erreicht.</p>
+            <div class="grid grid-cols-2 gap-3 bg-slate-950/70 p-4 rounded-2xl border border-slate-800 mb-5">
+                <div>
+                    <span id="gameover-player-label" class="block text-xs text-slate-400">Deine Punkte</span>
+                    <span id="gameover-player-score" class="text-2xl font-black text-amber-400">0</span>
+                </div>
+                <div>
+                    <span id="gameover-ai-label" class="block text-xs text-slate-400">Gegner Punkte</span>
+                    <span id="gameover-ai-score" class="text-2xl font-black text-slate-200">0</span>
+                </div>
+            </div>
+            <button id="btn-play-again" class="w-full py-3 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-black rounded-xl shadow-lg transition">
+                Neue Runde starten
+            </button>
+        </div>
+    </div>
 
     <!-- IMPRESSUM MODAL -->
     <div id="modal-impressum" class="hidden fixed inset-0 bg-slate-950/85 backdrop-blur-sm z-50 flex items-center justify-center p-4">
@@ -538,193 +502,139 @@
 
             <div class="space-y-3.5 text-xs md:text-sm leading-relaxed text-slate-300">
                 <section>
-                    <h3 class="font-bold text-amber-300 text-sm md:text-base mb-1">1. Das Blatt &amp; Kartenwerte</h3>
-                    <p>Das originale Gaigel-/Württembergische Blatt besteht aus <strong>48 Karten</strong>: zwei gleiche Sätze zu je 24 Karten. In jeder Farbe gibt es <strong>Ass, Zehner, König, Ober, Unter und Siebener</strong>.</p>
-                    <ul class="list-disc list-inside mt-1 space-y-0.5">
-                        <li><strong>Ass:</strong> 11 Punkte</li>
-                        <li><strong>Zehner:</strong> 10 Punkte</li>
-                        <li><strong>König:</strong> 4 Punkte</li>
-                        <li><strong>Ober:</strong> 3 Punkte</li>
-                        <li><strong>Unter:</strong> 2 Punkte</li>
-                        <li><strong>Siebener / Dissle:</strong> 0 Punkte</li>
-                    </ul>
+                    <h3 class="font-bold text-amber-300 text-sm md:text-base mb-1">1. Das Blatt & Kartenwerte</h3>
+                    <p>Das originale württembergische Blatt besteht aus <strong>48 Karten</strong> (zwei gleiche Sätze zu je 24 Karten): <strong>Ass (11), Zehner (10), König (4), Ober (3), Unter (2), Siebener / Dissle (0)</strong>.</p>
                 </section>
-
                 <section>
-                    <h3 class="font-bold text-amber-300 text-sm md:text-base mb-1">2. Spielbeginn</h3>
-                    <p>Jeder Spieler erhält <strong>5 Karten</strong>. Zunächst werden je 3 Karten ausgeteilt, anschließend wird die nächste Karte offen als <strong>Trumpfkarte</strong> aufgelegt und danach erhält jeder noch 2 Karten. Der restliche Stapel wird als Talon verdeckt auf die Trumpfkarte gelegt, sodass diese sichtbar bleibt.</p>
-                    <p class="mt-1">Die Vorhand beginnt. Im ersten Stich wird kein Trumpf ausgespielt.</p>
+                    <h3 class="font-bold text-amber-300 text-sm md:text-base mb-1">2. Eröffnung im ersten Stich</h3>
+                    <p><strong>Zweite Alte hat:</strong> Ein Ass wird verdeckt ausgespielt. Werden alle Karten verdeckt gespielt und liegt das zweite Ass derselben Farbe dabei, gewinnt dieses den Stich; sonst gewinnt die Vorhand.</p>
+                    <p class="mt-1"><strong>Ge-Elfen:</strong> Die Vorhand spielt ein Ass offen aus. Die anderen Spieler werfen beliebige Karten ab; die Vorhand gewinnt den Stich.</p>
+                    <p class="mt-1"><strong>Höher hat:</strong> Die Vorhand spielt eine Nicht-Trumpfkarte, die kein Ass ist, verdeckt aus. Die höchste Karte derselben Farbe gewinnt, andernfalls die Vorhand.</p>
                 </section>
-
                 <section>
-                    <h3 class="font-bold text-amber-300 text-sm md:text-base mb-1">3. Besondere Regeln für den ersten Stich</h3>
-                    <p><strong>Andere Alte hat:</strong> Wird ein Ass verdeckt ausgespielt und legen alle Spieler verdeckt ab, gewinnt das zweite Ass derselben Farbe, falls es im Stich liegt; sonst gewinnt die Vorhand.</p>
-                    <p class="mt-1"><strong>Ge-Elfen:</strong> Spielt die Vorhand ein Ass offen aus, gewinnen die Vorhand / das anspielende Team den Stich.</p>
-                    <p class="mt-1"><strong>Höher hat:</strong> Spielt die Vorhand eine Nicht-Trumpfkarte, die kein Ass ist, verdeckt aus, gewinnt die höchste Karte derselben Farbe; liegt keine höhere Karte derselben Farbe, gewinnt die Vorhand.</p>
+                    <h3 class="font-bold text-amber-300 text-sm md:text-base mb-1">3. Spielverlauf & Bedienpflicht</h3>
+                    <p>Solange der <strong>Talon</strong> vorhanden ist, besteht <strong>keine Bedienpflicht</strong>. Ist der Talon aufgebraucht, gilt <strong>Farb- und Stichzwang</strong> (Farbe bedienen, sonst Trumpf).</p>
+                    <p class="mt-1">Bei zwei völlig gleichen Karten gewinnt die zuerst ausgespielte.</p>
                 </section>
-
                 <section>
-                    <h3 class="font-bold text-amber-300 text-sm md:text-base mb-1">4. Spielverlauf &amp; Bedienpflicht</h3>
-                    <p>Wer <strong>König und Ober</strong> derselben Farbe besitzt, darf nach einem bereits gewonnenen Stich melden, wenn er am Zug ist. Eine Meldung zählt <strong>20 Punkte</strong>, in der Trumpffarbe <strong>40 Punkte</strong>. Jede Farbe kann pro Partei nur einmal gemeldet werden.</p>
+                    <h3 class="font-bold text-amber-300 text-sm md:text-base mb-1">4. Melden & Trumpf rauben</h3>
+                    <p>Mit <strong>König + Ober</strong> derselben Farbe darf nach dem ersten gewonnenen Stich gemeldet werden (<strong>20 Punkte</strong>, in Trumpf <strong>40 Punkte</strong>) – pro Farbe einmal. Mit dem <strong>Trumpf-Siebener</strong> darf nach dem ersten Stich die offene Trumpfkarte geraubt werden.</p>
                 </section>
-
                 <section>
-                    <h3 class="font-bold text-amber-300 text-sm md:text-base mb-1">4. Melden</h3>
-                    <p>Wer <strong>König und Ober</strong> derselben Farbe besitzt, darf nach einem bereits gewonnenen Stich melden, wenn er am Zug ist. Eine Meldung zählt <strong>20 Punkte</strong>, in der Trumpffarbe <strong>40 Punkte</strong>. Jede Farbe kann pro Partei nur einmal gemeldet werden.</p>
-                </section>
-
-                <section>
-                    <h3 class="font-bold text-amber-300 text-sm md:text-base mb-1">5. Trumpf rauben</h3>
-                    <p>Wer den <strong>Siebener der Trumpffarbe</strong> besitzt oder zieht, am Zug ist und bereits einen Stich gemacht hat, darf ihn gegen die offene Trumpfkarte unter dem Talon austauschen.</p>
-                </section>
-
-                <section>
-                    <h3 class="font-bold text-amber-300 text-sm md:text-base mb-1">6. Spielende</h3>
-                    <p>Gewonnen hat grundsätzlich die Partei, die zuerst <strong>101 Augen</strong> erreicht. Melde- und Stichpunkte der Partner werden zusammengezählt. Wird das Spiel mit dem letzten Stich beendet, gibt es zusätzlich 10 Punkte für den letzten Stich.</p>
+                    <h3 class="font-bold text-amber-300 text-sm md:text-base mb-1">5. Spielziel</h3>
+                    <p>Wer zuerst <strong>101 Punkte</strong> erreicht (oder nach dem letzten Stich vorne liegt), gewinnt die Partie.</p>
                 </section>
             </div>
 
             <div class="mt-5 text-center">
-                <button id="btn-confirm-rules" class="px-6 py-2 bg-amber-600 hover:bg-amber-500 text-slate-950 font-bold rounded-xl shadow-lg transition">
-                    Verstanden &amp; Spielen
+                <button id="btn-confirm-rules" class="px-6 py-2 bg-amber-600 hover:bg-amber-500 text-slate-950 font-bold rounded-xl shadow transition">
+                    Verstanden
                 </button>
             </div>
         </div>
     </div>
 
-    <!-- GAME OVER MODAL -->
-    <div id="modal-gameover" class="hidden fixed inset-0 bg-slate-950/90 backdrop-blur-md z-50 flex items-center justify-center p-4">
-        <div class="bg-slate-900 border-2 border-amber-500/60 w-full max-w-md rounded-3xl p-6 shadow-2xl text-center">
-            <div id="gameover-icon" class="text-6xl mb-2">🏆</div>
-            <h2 id="gameover-title" class="font-cinzel text-3xl font-extrabold text-amber-400 mb-1">Sieg!</h2>
-            <p id="gameover-message" class="text-xs md:text-sm text-slate-300 mb-5">Du hast 101 Punkte erreicht und gewonnen!</p>
-
-            <div class="bg-slate-950/80 rounded-2xl p-3.5 border border-slate-800 mb-5 flex justify-around">
-                <div>
-                    <span class="block text-[10px] uppercase text-slate-400 font-bold">Deine Punkte</span>
-                    <span id="gameover-player-score" class="text-2xl font-black text-amber-400">105</span>
-                </div>
-                <div class="w-px bg-slate-800"></div>
-                <div>
-                    <span class="block text-[10px] uppercase text-slate-400 font-bold">Gegner Punkte</span>
-                    <span id="gameover-ai-score" class="text-2xl font-black text-slate-400">82</span>
-                </div>
-            </div>
-
-            <button id="btn-modal-restart" class="w-full py-3 bg-gradient-to-r from-amber-500 to-amber-700 hover:from-amber-400 hover:to-amber-600 text-slate-950 font-bold text-sm md:text-base rounded-xl shadow-xl transition transform hover:scale-[1.02]">
-                Neues Spiel starten
-            </button>
-        </div>
-    </div>
-
-    <!-- SCRIPT SECTION -->
     <script>
-        /**
-         * GAIGEL GAME ENGINE - Ass, Zehner, König, Ober, Unter, Siebener (48 Karten)
-         * Blankenhagen Spieleentwicklung
-         */
-
-        class SoundEngine {
-            constructor() {
-                this.enabled = true;
-                this.ctx = null;
-            }
-
-            init() {
-                if (!this.ctx) {
-                    const AudioCtx = window.AudioContext || window.webkitAudioContext;
-                    if (AudioCtx) this.ctx = new AudioCtx();
-                }
-            }
-
-            playTone(freq, type, duration, gainVal = 0.08) {
-                if (!this.enabled) return;
-                this.init();
-                if (!this.ctx) return;
-
-                try {
-                    const osc = this.ctx.createOscillator();
-                    const gain = this.ctx.createGain();
-                    osc.type = type;
-                    osc.frequency.setValueAtTime(freq, this.ctx.currentTime);
-                    gain.gain.setValueAtTime(gainVal, this.ctx.currentTime);
-                    gain.gain.exponentialRampToValueAtTime(0.0001, this.ctx.currentTime + duration);
-
-                    osc.connect(gain);
-                    gain.connect(this.ctx.destination);
-
-                    osc.start();
-                    osc.stop(this.ctx.currentTime + duration);
-                } catch (e) {}
-            }
-
-            playCardSlide() {
-                this.playTone(380, 'sine', 0.07, 0.04);
-            }
-
-            playTrickWin() {
-                if (!this.enabled) return;
-                this.playTone(523.25, 'triangle', 0.12, 0.07);
-                setTimeout(() => this.playTone(659.25, 'triangle', 0.18, 0.07), 90);
-            }
-
-            playMeldFanfare() {
-                if (!this.enabled) return;
-                const tones = [440, 554.37, 659.25, 880];
-                tones.forEach((t, i) => {
-                    setTimeout(() => this.playTone(t, 'sine', 0.22, 0.08), i * 80);
-                });
-            }
-
-            playVictory() {
-                if (!this.enabled) return;
-                const tones = [523.25, 659.25, 783.99, 1046.50];
-                tones.forEach((t, i) => {
-                    setTimeout(() => this.playTone(t, 'square', 0.28, 0.07), i * 130);
-                });
-            }
-        }
-
-        const sound = new SoundEngine();
-
         const SUITS = {
-            EICHEL:  { id: 'EICHEL',  name: 'Eichel',   color: '#5C3317' },
-            GRUEN:   { id: 'GRUEN',   name: 'Grün',     color: '#1B7A42' },
-            HERZ:    { id: 'HERZ',    name: 'Herz',     color: '#C81D25' },
-            SCHELLE: { id: 'SCHELLE', name: 'Schellen', color: '#D99B00' }
+            EICHEL:  { key: 'EICHEL',  name: 'Eichel',   color: '#6b3e18' },
+            GRUEN:   { key: 'GRUEN',   name: 'Grün',     color: '#1b632c' },
+            HERZ:    { key: 'HERZ',    name: 'Herz',     color: '#b41e24' },
+            SCHELLE: { key: 'SCHELLE', name: 'Schellen', color: '#c48312' }
         };
 
         const RANKS = {
-            ASS:   { id: 'ASS',   code: 'A',  name: 'Ass',      value: 11, order: 6 },
-            TEN:   { id: 'TEN',   code: '10', name: 'Zehner',   value: 10, order: 5 },
-            KING:  { id: 'KING',  code: 'K',  name: 'König',    value: 4,  order: 4 },
-            OBER:  { id: 'OBER',  code: 'O',  name: 'Ober',     value: 3,  order: 3 },
-            UNTER: { id: 'UNTER', code: 'U',  name: 'Unter',    value: 2,  order: 2 },
-            SEVEN: { id: 'SEVEN', code: '7',  name: 'Siebener', value: 0,  order: 1 }
+            ASS:   { key: 'ASS',   code: 'A',  name: 'Ass',      points: 11, order: 6 },
+            TEN:   { key: 'TEN',   code: '10', name: 'Zehner',   points: 10, order: 5 },
+            KING:  { key: 'KING',  code: 'K',  name: 'König',    points: 4,  order: 4 },
+            OBER:  { key: 'OBER',  code: 'O',  name: 'Ober',     points: 3,  order: 3 },
+            UNTER: { key: 'UNTER', code: 'U',  name: 'Unter',    points: 2,  order: 2 },
+            SEVEN: { key: 'SEVEN', code: '7',  name: 'Siebener', points: 0,  order: 1 }
         };
 
-        const TARGET_SCORE = 101;
+        let soundEnabled = true;
+        let audioCtx = null;
 
-        function getSuitSVG(suitKey, size = 24) {
-            const c = suitKey === 'HERZ' ? '#b21f2d' : suitKey === 'GRUEN' ? '#1f6b3a' : suitKey === 'EICHEL' ? '#5b3a22' : '#c69224';
+        function playSound(type) {
+            if (!soundEnabled) return;
+            try {
+                if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                if (audioCtx.state === 'suspended') audioCtx.resume();
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                const now = audioCtx.currentTime;
+
+                if (type === 'card') {
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(240, now);
+                    osc.frequency.exponentialRampToValueAtTime(110, now + 0.08);
+                    gain.gain.setValueAtTime(0.14, now);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.09);
+                    osc.start(now);
+                    osc.stop(now + 0.09);
+                } else if (type === 'trick') {
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(340, now);
+                    osc.frequency.setValueAtTime(480, now + 0.08);
+                    gain.gain.setValueAtTime(0.14, now);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.22);
+                    osc.start(now);
+                    osc.stop(now + 0.22);
+                } else if (type === 'meld') {
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(440, now);
+                    osc.frequency.setValueAtTime(554, now + 0.1);
+                    osc.frequency.setValueAtTime(659, now + 0.2);
+                    gain.gain.setValueAtTime(0.18, now);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.42);
+                    osc.start(now);
+                    osc.stop(now + 0.42);
+                } else if (type === 'win') {
+                    osc.type = 'triangle';
+                    [523, 659, 784, 1046].forEach((f, idx) => osc.frequency.setValueAtTime(f, now + idx * 0.1));
+                    gain.gain.setValueAtTime(0.2, now);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.55);
+                    osc.start(now);
+                    osc.stop(now + 0.55);
+                }
+            } catch (e) {}
+        }
+
+        function getSuitSVG(suitKey, size = 18) {
             if (suitKey === 'HERZ') {
-                return `<svg width="${size}" height="${size}" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg"><path d="M16 28.5S4 20 4 11.8C4 7.1 7.4 4 11.2 4c2.8 0 4.2 1.9 4.8 3.4C16.6 5.9 18 4 20.8 4 24.6 4 28 7.1 28 11.8c0 8.2-12 16.7-12 16.7Z" fill="${c}" stroke="#5c1820" stroke-width="1.4"/></svg>`;
+                return `<svg width="${size}" height="${size}" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M16 28.5C16 28.5 4 20.5 4 11.8C4 7.6 7.2 4.5 11.1 4.5C13.5 4.5 15.2 5.8 16 7.4C16.8 5.8 18.5 4.5 20.9 4.5C24.8 4.5 28 7.6 28 11.8C28 20.5 16 28.5 16 28.5Z" fill="#b81d24" stroke="#4a1314" stroke-width="1.6"/>
+                    <path d="M10.5 8.5C8.5 8.8 7.5 10.5 7.8 12.6" fill="none" stroke="#f7b2a6" stroke-width="1.6" stroke-linecap="round"/>
+                </svg>`;
             }
             if (suitKey === 'GRUEN') {
-                return `<svg width="${size}" height="${size}" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg"><path d="M16 3C8.7 8.3 6.3 15.5 9.2 23.2 11 27 14.2 29 16 30c1.8-1 5-3 6.8-6.8C25.7 15.5 23.3 8.3 16 3Z" fill="${c}" stroke="#123f25" stroke-width="1.4"/><path d="M16 6v22M16 11l-4.5 3.5M16 16l5 4M16 21l-4.2 3.2" stroke="#a8d6b8" stroke-width="1.1" stroke-linecap="round"/></svg>`;
+                return `<svg width="${size}" height="${size}" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M16 3.5C10 9.5 5.5 14.5 5.5 20.2C5.5 24.2 8.7 26.8 12.5 26.8C14 26.8 15.1 26.2 16 25.4C16.9 26.2 18 26.8 19.5 26.8C23.3 26.8 26.5 24.2 26.5 20.2C26.5 14.5 22 9.5 16 3.5Z" fill="#1e6a2e" stroke="#18381c" stroke-width="1.6"/>
+                    <path d="M16 7.5V29.5M16 14L11 18M16 18L21 21.5" stroke="#85c47b" stroke-width="1.3" stroke-linecap="round"/>
+                </svg>`;
             }
             if (suitKey === 'EICHEL') {
-                return `<svg width="${size}" height="${size}" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg"><path d="M16 3c-1.5 4-7.7 5.4-8 11-.3 5.1 3.1 7.6 8 7.6s8.3-2.5 8-7.6c-.3-5.6-6.5-7-8-11Z" fill="${c}" stroke="#3d2515" stroke-width="1.3"/><path d="M16 21.5v7M12 26c2-1.2 6-1.2 8 0" fill="none" stroke="#3d2515" stroke-width="1.3" stroke-linecap="round"/></svg>`;
+                return `<svg width="${size}" height="${size}" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M9.5 13H22.5V20.5C22.5 24.8 19.5 28 16 28C12.5 28 9.5 24.8 9.5 20.5V13Z" fill="#b87b32" stroke="#3c2612" stroke-width="1.6"/>
+                    <path d="M8 13.5C8 8.8 11.6 6.2 16 6.2C20.4 6.2 24 8.8 24 13.5H8Z" fill="#5e3a19" stroke="#2d1c0c" stroke-width="1.6"/>
+                    <path d="M16 6.2V3.2" stroke="#2d1c0c" stroke-width="2.2" stroke-linecap="round"/>
+                </svg>`;
             }
-            return `<svg width="${size}" height="${size}" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg"><circle cx="16" cy="5" r="2.5" fill="#d2a52b" stroke="#624b14" stroke-width="1"/><path d="M7 16c0-5 4-8 9-8s9 3 9 8H7Z" fill="#d2a52b" stroke="#624b14" stroke-width="1.2"/><path d="M7 16h18v5H7z" fill="#b21f2d" stroke="#624b14" stroke-width="1.1"/><path d="M8 21h16c-.8 4.8-4.2 7.4-8 7.4S8.8 25.8 8 21Z" fill="#d2a52b" stroke="#624b14" stroke-width="1.2"/></svg>`;
+            return `<svg width="${size}" height="${size}" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="16" cy="17" r="10.5" fill="#e2a524" stroke="#53370c" stroke-width="1.6"/>
+                <path d="M7.5 15.5H24.5" stroke="#53370c" stroke-width="1.6"/>
+                <circle cx="16" cy="21" r="2.2" fill="#53370c"/>
+                <path d="M16 4V6.8" stroke="#53370c" stroke-width="2.2" stroke-linecap="round"/>
+            </svg>`;
         }
 
         function courtPalette(suitKey) {
             const palettes = {
-                EICHEL:  { coat: '#7d3027', trim: '#e0b33f', shirt: '#f3e8c9', accent: '#315b38' },
-                GRUEN:   { coat: '#315f45', trim: '#d2ad43', shirt: '#f2e6c5', accent: '#8a2f2f' },
-                HERZ:    { coat: '#9b2832', trim: '#d7b14b', shirt: '#f4e7c8', accent: '#315a76' },
-                SCHELLE: { coat: '#2e5e86', trim: '#d9ae43', shirt: '#f1e4c4', accent: '#8a2f2f' }
+                EICHEL:  { coat: '#9b2420', trim: '#e2b238', shirt: '#f6ecd2', accent: '#235a8c', horse: '#8c5332' },
+                GRUEN:   { coat: '#a62222', trim: '#e2b238', shirt: '#f7edd3', accent: '#1e588c', horse: '#8a5232' },
+                HERZ:    { coat: '#1e5a8c', trim: '#e2b238', shirt: '#f7edd3', accent: '#a82226', horse: '#6b4228' },
+                SCHELLE: { coat: '#1f643c', trim: '#e2b238', shirt: '#f6ecd0', accent: '#a62424', horse: '#8c5332' }
             };
             return palettes[suitKey] || palettes.EICHEL;
         }
@@ -732,38 +642,99 @@
         function figureHalf(rank, suitKey, mirror = false) {
             const p = courtPalette(suitKey);
             const transform = mirror ? 'transform="translate(0 96) rotate(180 32 48)"' : '';
-            const hat = rank === 'KING'
-                ? `<path d="M21 12l3-7 4 5 4-7 4 7 4-5 3 7Z" fill="${p.trim}" stroke="#4b3514" stroke-width="1"/>`
-                : rank === 'OBER'
-                    ? `<path d="M22 12c1-6 19-6 20 0Z" fill="${p.accent}" stroke="#4b3514" stroke-width="1"/><path d="M21 12h22" stroke="${p.trim}" stroke-width="2"/>`
-                    : `<path d="M21 12c1-5 21-5 22 0H21Z" fill="${p.coat}" stroke="#3f2b18" stroke-width="1"/><path d="M20 12h24" stroke="${p.trim}" stroke-width="1.7"/>`;
-            const body = rank === 'KING'
-                ? `<path d="M13 46c1-14 8-21 19-21s18 7 19 21Z" fill="${p.coat}" stroke="#3f2b18" stroke-width="1.1"/><path d="M23 25l9 11 9-11-4 3-5-2-5 2Z" fill="${p.shirt}" stroke="#5b4630" stroke-width=".8"/><path d="M17 32l8 6-4 7-8-4Z" fill="${p.accent}" stroke="#3f2b18" stroke-width=".8"/><path d="M47 32l-8 6 4 7 8-4Z" fill="${p.accent}" stroke="#3f2b18" stroke-width=".8"/><path d="M47 18v27" stroke="${p.trim}" stroke-width="2"/>`
-                : `<path d="M16 46c1-14 7-22 16-22s15 8 16 22Z" fill="${p.coat}" stroke="#3f2b18" stroke-width="1.1"/><path d="M25 25l7 10 7-10" fill="${p.shirt}" stroke="#5b4630" stroke-width=".8"/><path d="M15 42c3-8 8-10 14-9l-4 13Z" fill="${p.accent}" stroke="#3f2b18" stroke-width=".8"/>`;
-            return `<g ${transform}>${hat}<circle cx="32" cy="17" r="5.2" fill="#efc79e" stroke="#5b3b22" stroke-width="1"/><path d="M27 18c2 3 8 3 10 0" fill="none" stroke="#704322" stroke-width="1"/>${body}</g>`;
+            if (rank === 'KING') {
+                return `<g ${transform}>
+                    <path d="M21 11l3-6 4 4 4-6 4 6 4-4 3 6Z" fill="${p.trim}" stroke="#4a3312" stroke-width=".9"/>
+                    <rect x="21" y="10.5" width="22" height="2.2" fill="#a82226" stroke="#4a3312" stroke-width=".6"/>
+                    <circle cx="32" cy="17.5" r="5.3" fill="#efc89f" stroke="#4f361e" stroke-width=".9"/>
+                    <path d="M27.5 19c1.8 3.2 7.2 3.2 9 0" fill="none" stroke="#664020" stroke-width="1.1"/>
+                    <path d="M11 47c1-15 8-22 21-22s20 7 21 22Z" fill="${p.coat}" stroke="#3b2614" stroke-width="1"/>
+                    <path d="M14 47c2-12 7-18 18-18s16 6 18 18Z" fill="${p.trim}" opacity=".85"/>
+                    <path d="M18 47c2-10 6-15 14-15s12 5 14 15Z" fill="${p.accent}" stroke="#3b2614" stroke-width=".8"/>
+                    <path d="M23 36c4-3 14-3 18 0l-3 11H26Z" fill="${p.shirt}" stroke="#5c4630" stroke-width=".8"/>
+                    <path d="M46 16v30" stroke="${p.trim}" stroke-width="2"/>
+                    <circle cx="46" cy="15" r="2.2" fill="${p.trim}" stroke="#4a3312" stroke-width=".7"/>
+                </g>`;
+            }
+            if (rank === 'OBER') {
+                return `<g ${transform}>
+                    <ellipse cx="37" cy="11.5" rx="7.5" ry="4.2" fill="${p.accent}" stroke="#2c2116" stroke-width=".9"/>
+                    <circle cx="37" cy="16.5" r="4.6" fill="#efc89f" stroke="#4f361e" stroke-width=".9"/>
+                    <path d="M26 46c1-12 5-20 12-20 6 0 11 7 12 20Z" fill="${p.coat}" stroke="#3b2614" stroke-width=".9"/>
+                    <path d="M31 27h9v18h-9Z" fill="${p.accent}" stroke="#2b2015" stroke-width=".7"/>
+                    <path d="M13 46c1-9 5-15 11-16l6 2 3 14Z" fill="${p.horse}" stroke="#3b2614" stroke-width=".9"/>
+                    <ellipse cx="14" cy="34" rx="4.2" ry="2.6" transform="rotate(-24 14 34)" fill="${p.horse}" stroke="#3b2614" stroke-width=".8"/>
+                    <path d="M15 35c5 2 10 3 16 2" fill="none" stroke="#d9b25f" stroke-width="1"/>
+                    <path d="M21 15c-4 4-4 11 1 15" fill="none" stroke="#4b351c" stroke-width="1"/>
+                </g>`;
+            }
+            return `<g ${transform}>
+                <ellipse cx="32" cy="11.5" rx="10.5" ry="2.5" fill="#b88428" stroke="#463114" stroke-width=".85"/>
+                <path d="M25 11c1-4.8 13-4.8 14 0Z" fill="#c99532" stroke="#463114" stroke-width=".85"/>
+                <circle cx="32" cy="17.2" r="4.8" fill="#efc89f" stroke="#4f361e" stroke-width=".9"/>
+                <path d="M17 47c1-13 6-21 15-21s14 8 15 21Z" fill="${p.accent}" stroke="#2f2214" stroke-width=".95"/>
+                <path d="M24 26h16v21H24Z" fill="${p.coat}" stroke="#3b2614" stroke-width=".85"/>
+                <path d="M28 26l4 9 4-9v21h-8Z" fill="${p.shirt}" stroke="#5c4630" stroke-width=".75"/>
+                <path d="M31 28l1 8 1-8" fill="${p.accent}"/>
+            </g>`;
         }
 
-        function getPipCardSVG(rank, suitKey) {
-            const count = rank === 'ASS' ? 1 : rank === 'TEN' ? 10 : 7;
-            const size = count >= 10 ? 9 : 12;
-            const rows = count === 1 ? [1] : count === 7 ? [2, 3, 2] : [2, 3, 2, 3];
-            let html = `<div class="w-full h-full flex flex-col items-center justify-between py-1 px-1"><div class="w-full flex justify-between px-0.5"><span class="old-index">${RANKS[rank].code}</span>${getSuitSVG(suitKey, 10)}</div><div class="flex-1 w-full flex flex-col justify-around py-1">`;
-            if (count === 1) {
-                html += `<div class="flex justify-center">${getSuitSVG(suitKey, 24)}</div>`;
-            } else {
-                rows.forEach(n => {
-                    html += `<div class="flex ${n === 3 ? 'justify-around' : 'justify-between'} px-1">`;
-                    for (let j = 0; j < n; j++) html += getSuitSVG(suitKey, size);
-                    html += '</div>';
-                });
-            }
-            return html + `</div><div class="w-full flex justify-between px-0.5 rotate-180"><span class="old-index">${RANKS[rank].code}</span>${getSuitSVG(suitKey, 10)}</div></div>`;
+        function getAceOrnamentSVG(suitKey) {
+            const p = courtPalette(suitKey);
+            return `<div class="w-full h-full flex flex-col justify-between py-2 px-1">
+                <div class="w-full flex justify-between items-center px-0.5">${getSuitSVG(suitKey, 14)}${getSuitSVG(suitKey, 14)}</div>
+                <div class="flex-1 flex items-center justify-center my-0.5">
+                    <svg class="w-full h-full max-h-[66px]" viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg">
+                        <ellipse cx="40" cy="40" rx="31" ry="23" fill="#efe2c4" stroke="#5d4628" stroke-width="1.2"/>
+                        <path d="M12 40c8-15 20-20 28-20s20 5 28 20c-8 15-20 20-28 20S20 55 12 40Z" fill="${p.accent}" opacity=".22" stroke="#5d4628" stroke-width="1"/>
+                        <path d="M18 26c9 5 35 5 44 0M18 54c9-5 35-5 44 0" fill="none" stroke="${p.trim}" stroke-width="2.4"/>
+                        <path d="M23 19c6 12 6 30 0 42M57 19c-6 12-6 30 0 42" fill="none" stroke="${p.coat}" stroke-width="2.2"/>
+                        <circle cx="40" cy="40" r="10.5" fill="#f7efe0" stroke="#5d4628" stroke-width="1.2"/>
+                        <circle cx="40" cy="40" r="5.5" fill="${p.trim}" stroke="#5d4628" stroke-width=".9"/>
+                    </svg>
+                </div>
+                <div class="w-full flex justify-between items-center px-0.5 rotate-180">${getSuitSVG(suitKey, 14)}${getSuitSVG(suitKey, 14)}</div>
+            </div>`;
+        }
+
+        function getStemPipCardSVG(rank, suitKey) {
+            const perHalf = rank === 'TEN' ? 5 : 3;
+            const symSize = rank === 'TEN' ? 10 : 12;
+            const topMark = rank === 'TEN' ? 'X' : '7';
+            const renderHalf = (mirror) => {
+                let rows = '';
+                for (let i = 0; i < perHalf; i++) {
+                    rows += `<div class="w-full flex items-center justify-between px-1">
+                        ${getSuitSVG(suitKey, symSize)}
+                        <span class="w-2.5 h-[1.5px] bg-[#6e5a36] inline-block"></span>
+                        ${getSuitSVG(suitKey, symSize)}
+                    </div>`;
+                }
+                return `<div class="relative flex-1 w-full flex flex-col justify-around py-0.5 ${mirror ? 'rotate-180' : ''}">
+                    <div class="absolute inset-y-1 left-1/2 -translate-x-1/2 w-[1.5px] bg-[#6e5a36]"></div>
+                    ${rows}
+                </div>`;
+            };
+            return `<div class="w-full h-full flex flex-col items-center justify-between py-0.5 px-0.5">
+                <span class="font-serif font-black text-[9px] leading-none text-[#2b2218]">${topMark}</span>
+                ${renderHalf(false)}
+                <div class="w-full h-[1px] bg-[#8b734b]"></div>
+                ${renderHalf(true)}
+                <span class="font-serif font-black text-[9px] leading-none text-[#2b2218] rotate-180">${topMark}</span>
+            </div>`;
         }
 
         function getCourtFigureSVG(rank, suitKey) {
-            if (rank === 'ASS' || rank === 'TEN' || rank === 'SEVEN') return getPipCardSVG(rank, suitKey);
-            const label = rank === 'KING' ? 'König' : rank === 'OBER' ? 'Ober' : 'Unter';
-            return `<div class="w-full h-full flex flex-col items-center justify-between px-0.5 py-0.5"><div class="w-full flex justify-between items-center px-0.5"><span class="old-mini">${label}</span>${getSuitSVG(suitKey, 10)}<span class="old-mini">${SUITS[suitKey].name}</span></div><svg class="w-full h-[88%]" viewBox="0 0 64 96" xmlns="http://www.w3.org/2000/svg"><rect x="3" y="3" width="58" height="90" rx="2" fill="#f5edd8" stroke="#8c7654" stroke-width=".7"/><path d="M6 48h52" stroke="#9b8766" stroke-width=".7" stroke-dasharray="2 2"/>${figureHalf(rank, suitKey, false)}${figureHalf(rank, suitKey, true)}<circle cx="32" cy="48" r="2.3" fill="#d0ad50" stroke="#70551e" stroke-width=".6"/></svg></div>`;
+            if (rank === 'ASS') return getAceOrnamentSVG(suitKey);
+            if (rank === 'TEN' || rank === 'SEVEN') return getStemPipCardSVG(rank, suitKey);
+            return `<div class="w-full h-full flex items-center justify-center px-0.5 py-1.5">
+                <svg class="w-full h-full" viewBox="0 0 64 96" xmlns="http://www.w3.org/2000/svg">
+                    <rect x="2" y="2" width="60" height="92" rx="2" fill="#f5ecd8" stroke="#7d6542" stroke-width=".9"/>
+                    <path d="M4 48h56" stroke="#7d6542" stroke-width=".9"/>
+                    ${figureHalf(rank, suitKey, false)}
+                    ${figureHalf(rank, suitKey, true)}
+                </svg>
+            </div>`;
         }
 
         function createCardSVG(suit, rank, faceUp = true) {
@@ -771,699 +742,186 @@
                 return `<div class="card-dimensions old-card old-back"><div class="old-back-inner"><div class="old-back-pattern"></div><div class="old-back-medallion">G</div></div></div>`;
             }
             const rankObj = RANKS[rank];
-            return `<div class="card-dimensions old-card"><div class="old-corner top"><span class="old-index">${rankObj.code}</span>${getSuitSVG(suit, 11)}</div><div class="old-card-art">${getCourtFigureSVG(rank, suit)}</div><div class="old-corner bottom"><span class="old-index">${rankObj.code}</span>${getSuitSVG(suit, 11)}</div></div>`;
+            const cornerHtml = `<span class="old-index">${rankObj.code}</span>${getSuitSVG(suit, 8)}`;
+            const suitBadge = (rank === 'KING' || rank === 'OBER' || rank === 'UNTER')
+                ? `<div class="absolute left-1.5 top-[34%] z-10">${getSuitSVG(suit, 12)}</div><div class="absolute right-1.5 bottom-[34%] z-10 rotate-180">${getSuitSVG(suit, 12)}</div>`
+                : '';
+            return `<div class="card-dimensions old-card">
+                <div class="old-corner tl">${cornerHtml}</div>
+                <div class="old-corner tr">${cornerHtml}</div>
+                ${suitBadge}
+                <div class="old-card-art">${getCourtFigureSVG(rank, suit)}</div>
+                <div class="old-corner bl">${cornerHtml}</div>
+                <div class="old-corner br">${cornerHtml}</div>
+            </div>`;
         }
 
-        function createDeck() {
+        // GAME STATE
+        let gameMode = '2P'; // '2P' or '4P'
+        let gameState = null;
+
+        function buildDeck() {
             const deck = [];
-            let cardId = 0;
-            for (let set = 0; set < 2; set++) {
-                for (const suitKey in SUITS) {
-                    for (const rankKey in RANKS) {
-                        deck.push({
-                            id: `card-${cardId++}`,
-                            suit: suitKey,
-                            rank: rankKey,
-                            value: RANKS[rankKey].value,
-                            order: RANKS[rankKey].order
-                        });
+            let id = 1;
+            for (let copy = 0; copy < 2; copy++) {
+                for (const suitKey of Object.keys(SUITS)) {
+                    for (const rankKey of Object.keys(RANKS)) {
+                        deck.push({ id: id++, suit: suitKey, rank: rankKey });
                     }
                 }
             }
-            return shuffle(deck);
-        }
-
-        function shuffle(array) {
-            for (let i = array.length - 1; i > 0; i--) {
+            for (let i = deck.length - 1; i > 0; i--) {
                 const j = Math.floor(Math.random() * (i + 1));
-                [array[i], array[j]] = [array[j], array[i]];
+                [deck[i], deck[j]] = [deck[j], deck[i]];
             }
-            return array;
+            return deck;
         }
 
-        let gameState = {
-            mode: '2P',
-            deck: [],
-            talon: [],
-            trumpSuit: null,
-            trumpCard: null,
-            hands: { PLAYER: [], WEST: [], TOP: [], EAST: [] },
-            teamScores: { US: 0, THEM: 0 },
-            teamTricks: { US: 0, THEM: 0 },
-            turn: 'PLAYER',
-            leadPlayer: 'PLAYER',
-            trickCards: [],
-            firstTrickOfGame: true,
-            playFaceDownNext: false,
-            lastTrickWinner: null,
-            phase: 'TALON',
-            historyLog: [],
-            lastMeld: null,
-            meldedSuits: { US: [], THEM: [] },
-            gameActive: false
-        };
+        function sortHand(hand, trumpSuit) {
+            const suitOrder = { EICHEL: 1, GRUEN: 2, HERZ: 3, SCHELLE: 4 };
+            return hand.sort((a, b) => {
+                if (a.suit === trumpSuit && b.suit !== trumpSuit) return -1;
+                if (b.suit === trumpSuit && a.suit !== trumpSuit) return 1;
+                if (a.suit !== b.suit) return suitOrder[a.suit] - suitOrder[b.suit];
+                return RANKS[b.rank].order - RANKS[a.rank].order;
+            });
+        }
 
-        function getActiveSeats() {
-            return gameState.mode === '4P' ? ['PLAYER', 'WEST', 'TOP', 'EAST'] : ['PLAYER', 'TOP'];
+        function logEvent(text, highlight = false) {
+            const logEl = document.getElementById('game-log');
+            if (!logEl) return;
+            const entry = document.createElement('div');
+            entry.className = highlight ? 'text-amber-300 font-semibold' : 'text-slate-300';
+            entry.textContent = `• ${text}`;
+            logEl.appendChild(entry);
+            logEl.scrollTop = logEl.scrollHeight;
+        }
+
+        function showFloatingScore(text) {
+            const container = document.getElementById('floating-score-container');
+            if (!container) return;
+            const el = document.createElement('div');
+            el.className = 'animate-float-score font-cinzel font-black text-xl sm:text-2xl text-amber-300 drop-shadow-[0_2px_6px_rgba(0,0,0,0.95)] bg-slate-950/80 px-3 py-1 rounded-full border border-amber-400/60';
+            el.textContent = text;
+            container.appendChild(el);
+            setTimeout(() => el.remove(), 1850);
+        }
+
+        function initGame() {
+            const deck = buildDeck();
+            const seats = gameMode === '2P' ? ['player', 'ai'] : ['player', 'west', 'ai', 'east'];
+            const hands = { player: [], ai: [], west: [], east: [] };
+
+            seats.forEach(s => { for (let i = 0; i < 3; i++) hands[s].push(deck.pop()); });
+            const trumpCard = deck.pop();
+            seats.forEach(s => { for (let i = 0; i < 2; i++) hands[s].push(deck.pop()); });
+
+            const trumpSuit = trumpCard.suit;
+            seats.forEach(s => sortHand(hands[s], trumpSuit));
+
+            gameState = {
+                mode: gameMode,
+                seats,
+                talon: deck,
+                trumpCard,
+                trumpSuit,
+                hands,
+                scores: { player: 0, ai: 0 },
+                tricksCount: { player: 0, ai: 0 },
+                meldedSuits: { player: new Set(), ai: new Set() },
+                currentTrick: [],
+                turn: 'player',
+                leadSeat: 'player',
+                trickNumber: 1,
+                faceDownLead: false,
+                firstTrickMode: null,
+                isResolvingTrick: false,
+                lastMeldText: '',
+                gameOver: false
+            };
+
+            const logEl = document.getElementById('game-log');
+            if (logEl) logEl.innerHTML = '';
+            document.getElementById('last-trick-winner').textContent = '-';
+            document.getElementById('modal-gameover').classList.add('hidden');
+            logEvent(`Neue Partie (${gameMode === '2P' ? '2er Gaigel' : '4er Kreuzgaigel'}). Trumpf: ${SUITS[trumpSuit].name}.`, true);
+            updateUI();
+        }
+
+        function getTeam(seat) {
+            return (seat === 'player' || seat === 'ai' && gameMode === '4P') ? 'player' : 'ai';
         }
 
         function getNextSeat(seat) {
-            const seats = getActiveSeats();
-            const idx = seats.indexOf(seat);
-            return seats[(idx + 1) % seats.length];
+            const idx = gameState.seats.indexOf(seat);
+            return gameState.seats[(idx + 1) % gameState.seats.length];
         }
 
-        function getSeatTeam(seat) {
-            if (gameState.mode === '2P') return seat === 'PLAYER' ? 'US' : 'THEM';
-            return (seat === 'PLAYER' || seat === 'TOP') ? 'US' : 'THEM';
-        }
-
-        function getSeatDisplayName(seat) {
-            if (gameState.mode === '2P') return seat === 'PLAYER' ? 'Du' : 'Gegner';
-            if (seat === 'PLAYER') return 'Du';
-            if (seat === 'TOP') return 'Partner (oben)';
-            if (seat === 'WEST') return 'Gegner Links';
+        function seatLabel(seat) {
+            if (seat === 'player') return 'Du';
+            if (seat === 'ai') return gameMode === '4P' ? 'Partner' : 'Gegner';
+            if (seat === 'west') return 'Gegner Links';
             return 'Gegner Rechts';
         }
 
-        function startNewGame() {
-            gameState.deck = createDeck();
-            gameState.hands = { PLAYER: [], WEST: [], TOP: [], EAST: [] };
-            gameState.teamScores = { US: 0, THEM: 0 };
-            gameState.teamTricks = { US: 0, THEM: 0 };
-            gameState.trickCards = [];
-            gameState.firstTrickOfGame = true;
-            gameState.playFaceDownNext = false;
-            gameState.lastTrickWinner = null;
-            gameState.historyLog = [];
-            gameState.lastMeld = null;
-            gameState.meldedSuits = { US: [], THEM: [] };
-            gameState.gameActive = true;
-            gameState.phase = 'TALON';
-
-            const seats = getActiveSeats();
-            for (let i = 0; i < 5; i++) {
-                for (const s of seats) {
-                    gameState.hands[s].push(gameState.deck.pop());
-                }
-            }
-
-            gameState.trumpCard = gameState.deck.pop();
-            gameState.trumpSuit = gameState.trumpCard.suit;
-            gameState.talon = gameState.deck;
-
-            gameState.leadPlayer = seats[Math.floor(Math.random() * seats.length)];
-            gameState.turn = gameState.leadPlayer;
-
-            const modeLabel = gameState.mode === '4P' ? 'Kreuzgaigel (4 Spieler über Kreuz)' : '2er-Gaigel';
-            logMessage(`Neues <strong>${modeLabel}</strong>! Trumpf ist <strong>${SUITS[gameState.trumpSuit].name}</strong> (1. Stich: kein Trumpf!).`);
-            if (gameState.leadPlayer === 'PLAYER') {
-                logMessage(`Du darfst anspielen. (Kein Trumpf im 1. Stich; optional verdeckt runter gehen!)`);
-            } else {
-                logMessage(`${getSeatDisplayName(gameState.leadPlayer)} greift an.`);
-            }
-
-            updateUI();
-            sound.playCardSlide();
-
-            if (gameState.turn !== 'PLAYER') {
-                setTimeout(handleAITurn, 850);
-            }
+        function isTalonEmpty() {
+            return gameState.talon.length === 0 && !gameState.trumpCard;
         }
 
-        function logMessage(msg) {
-            gameState.historyLog.unshift(msg);
-            if (gameState.historyLog.length > 25) gameState.historyLog.pop();
-
-            const logContainer = document.getElementById('game-log');
-            if (logContainer) {
-                logContainer.innerHTML = gameState.historyLog.map(m => `<div class="py-0.5 border-b border-slate-800/40">${m}</div>`).join('');
-            }
-        }
-
-        function showFloatingScore(amount, isUs) {
-            const container = document.getElementById('floating-score-container');
-            if (!container) return;
-
-            const el = document.createElement('div');
-            el.className = `font-black text-2xl md:text-3xl animate-float-score ${isUs ? 'text-amber-400 drop-shadow-[0_2px_8px_rgba(245,158,11,0.8)]' : 'text-rose-400 drop-shadow-[0_2px_8px_rgba(244,63,94,0.8)]'}`;
-            el.innerText = `+${amount} Pkt!`;
-            container.appendChild(el);
-
-            setTimeout(() => {
-                if (el && el.parentNode) el.parentNode.removeChild(el);
-            }, 1800);
-        }
-
-        function evaluateTrickCards(trickEntries) {
-            // Sonderregeln für den allerersten Stich:
-            // 1. "Ge-Elfen": Vorhand spielt ein Ass offen aus -> Vorhand gewinnt.
-            // 2. "Andere Alte hat": Vorhand spielt ein Ass verdeckt aus und alle legen verdeckt ab ->
-            //    zweites Ass derselben Farbe gewinnt, sonst Vorhand.
-            // 3. "Höher hat": Vorhand spielt eine Nicht-Trumpfkarte (kein Ass) verdeckt aus ->
-            //    höchste Karte derselben Farbe gewinnt, sonst Vorhand.
-            if (gameState.firstTrickOfGame && trickEntries.length > 0) {
-                const leadEntry = trickEntries[0];
-                const leadCard = leadEntry.card;
-                const leadSeat = leadEntry.seat;
-                const allFaceDown = trickEntries.every(e => Boolean(e.faceDown));
-
-                if (leadCard.rank === 'ASS' && !leadEntry.faceDown) {
-                    return leadSeat;
-                }
-
-                if (leadCard.rank === 'ASS' && leadEntry.faceDown && allFaceDown) {
-                    const secondAceEntry = trickEntries.slice(1).find(
-                        e => e.card.suit === leadCard.suit && e.card.rank === 'ASS'
-                    );
-                    return secondAceEntry ? secondAceEntry.seat : leadSeat;
-                }
-
-                if (leadCard.suit !== gameState.trumpSuit && leadCard.rank !== 'ASS' && leadEntry.faceDown) {
-                    let highestSameSuit = leadEntry;
-                    for (let i = 1; i < trickEntries.length; i++) {
-                        const current = trickEntries[i];
-                        if (current.card.suit === leadCard.suit && current.card.order > highestSameSuit.card.order) {
-                            highestSameSuit = current;
-                        }
-                    }
-                    return highestSameSuit.seat;
-                }
-            }
-
-            const trumpActive = !gameState.firstTrickOfGame;
-            let bestEntry = trickEntries[0];
-            for (let i = 1; i < trickEntries.length; i++) {
-                const current = trickEntries[i];
-                const bestSuit = bestEntry.card.suit;
-                const currSuit = current.card.suit;
-
-                if (currSuit === bestSuit) {
-                    if (current.card.order > bestEntry.card.order) {
-                        bestEntry = current;
-                    }
-                } else if (trumpActive && currSuit === gameState.trumpSuit && bestSuit !== gameState.trumpSuit) {
-                    bestEntry = current;
-                }
-            }
-            return bestEntry.seat;
-        }
-
-        function playPlayerCard(index) {
-            if (!gameState.gameActive || gameState.turn !== 'PLAYER') return;
-
-            const hand = gameState.hands.PLAYER;
-            const card = hand[index];
-            const isLeading = gameState.trickCards.length === 0;
-
-            if (gameState.firstTrickOfGame && isLeading && card.suit === gameState.trumpSuit) {
-                const hasNonTrump = hand.some(c => c.suit !== gameState.trumpSuit);
-                if (hasNonTrump) {
-                    logMessage(`<span class="text-rose-400 font-semibold">Kein Trumpf beim ersten Stich!</span> Wähle eine andere Farbe.`);
-                    return;
-                }
-            }
-
-            if (gameState.phase === 'STRICT' && !isLeading) {
-                if (!isValidMove(card, hand, gameState.trickCards[0].card)) {
-                    logMessage(`<span class="text-rose-400 font-semibold">Ungültig!</span> Farb- &amp; Stichzwang beachten.`);
-                    return;
-                }
-            }
-
-            const isFaceDownPlay = gameState.firstTrickOfGame && isLeading && gameState.playFaceDownNext;
-
-            hand.splice(index, 1);
-            gameState.trickCards.push({ seat: 'PLAYER', card, faceDown: isFaceDownPlay });
-            sound.playCardSlide();
-
-            if (isFaceDownPlay) {
-                // "zweite Alte" steht für verdecktes Ass; sonst gilt "höher hat"
-                const callLabel = card.rank === 'ASS' ? 'zweite Alte (Ass)' : 'höher hat';
-                logMessage(`🙈 Du spielst <strong>verdeckt</strong> an: <strong>${callLabel}</strong>!`);
-                gameState.playFaceDownNext = false;
-            }
-
-            advanceTurnAfterPlay();
-        }
-
-        function advanceTurnAfterPlay() {
-            const totalSeats = getActiveSeats().length;
-            if (gameState.trickCards.length >= totalSeats) {
-                updateUI();
-                setTimeout(resolveTrick, 850);
-            } else {
-                gameState.turn = getNextSeat(gameState.turn);
-                updateUI();
-                if (gameState.turn !== 'PLAYER') {
-                    setTimeout(handleAITurn, 700);
-                }
-            }
-        }
-
-        function handleAITurn() {
-            if (!gameState.gameActive || gameState.turn === 'PLAYER') return;
-
-            const seat = gameState.turn;
+        function getLegalCards(seat) {
             const hand = gameState.hands[seat];
-            const team = getSeatTeam(seat);
-            const isLeading = gameState.trickCards.length === 0;
+            if (!hand || hand.length === 0) return [];
+            const isLead = gameState.currentTrick.length === 0;
 
-            // KI darf nur melden oder mit dem 7er rauben, wenn ihr Team bereits einen Stich hat
-            if (gameState.phase === 'TALON' && isLeading && gameState.teamTricks[team] > 0) {
-                // Erst 7er rauben, falls möglich – danach ggf. melden
-                if (canSwapTrump(hand)) {
-                    swapTrumpCard(seat);
+            if (isLead) {
+                if (gameState.trickNumber === 1 && !gameState.faceDownLead) {
+                    const nonTrump = hand.filter(c => c.suit !== gameState.trumpSuit);
+                    if (nonTrump.length > 0) return nonTrump;
                 }
-
-                // Nur melden, wenn das Paar nicht sofort unnötig zerrissen werden muss oder es Punkte bringt
-                const meld = findBestMeld(hand, team);
-                if (meld) {
-                    const points = meld.suit === gameState.trumpSuit ? 40 : 20;
-                    gameState.teamScores[team] += points;
-                    if (!gameState.meldedSuits[team].includes(meld.suit)) {
-                        gameState.meldedSuits[team].push(meld.suit);
-                    }
-                    gameState.lastMeld = {
-                        who: getSeatDisplayName(seat),
-                        suit: meld.suit,
-                        points: points,
-                        isTrump: meld.suit === gameState.trumpSuit
-                    };
-                    sound.playMeldFanfare();
-                    showFloatingScore(points, team === 'US');
-                    logMessage(`📣 <strong>${getSeatDisplayName(seat)}</strong> meldet <strong>${meld.suit === gameState.trumpSuit ? 'Trumpf-Paar (40er)' : 'Paar (20er)'}</strong>!`);
-                    checkWinCondition();
-                    if (!gameState.gameActive) return;
+                if (gameState.trickNumber === 1 && gameState.faceDownLead) {
+                    const nonTrump = hand.filter(c => c.suit !== gameState.trumpSuit);
+                    if (nonTrump.length > 0) return nonTrump;
                 }
+                return [...hand];
             }
 
-            let cardIndex = 0;
-            if (isLeading) {
-                cardIndex = chooseAILeadCard(seat, hand);
-            } else {
-                cardIndex = chooseAIResponseCard(seat, hand);
+            // Erster Stich mit Ge-Elfen oder verdecktem Anspiel: beliebige Karte darf abgeworfen/gespielt werden
+            if (gameState.trickNumber === 1 && (gameState.firstTrickMode === 'GE_ELFEN' || gameState.firstTrickMode === 'ZWEITE_ALTE' || gameState.firstTrickMode === 'HOEHER_HAT')) {
+                return [...hand];
             }
 
-            const isAIFaceDown = gameState.firstTrickOfGame && isLeading && shouldAIDoFaceDownLead(seat, hand, cardIndex);
-
-            const card = hand.splice(cardIndex, 1)[0];
-            gameState.trickCards.push({ seat, card, faceDown: isAIFaceDown });
-            sound.playCardSlide();
-
-            if (isAIFaceDown) {
-                const callLabel = card.rank === 'ASS' ? 'zweite Alte (Ass)' : 'höher hat';
-                logMessage(`🙈 <strong>${getSeatDisplayName(seat)}</strong> spielt <strong>verdeckt</strong> an: <strong>${callLabel}</strong>!`);
+            // Solange Talon nicht leer ist: keine Bedienpflicht
+            if (!isTalonEmpty()) {
+                return [...hand];
             }
 
-            advanceTurnAfterPlay();
+            // Farb- und Stichzwang wenn Talon leer
+            const leadCard = gameState.currentTrick[0].card;
+            const sameSuit = hand.filter(c => c.suit === leadCard.suit);
+            if (sameSuit.length > 0) {
+                const higherSame = sameSuit.filter(c => RANKS[c.rank].order > RANKS[leadCard.rank].order);
+                return higherSame.length > 0 ? higherSame : sameSuit;
+            }
+            const trumps = hand.filter(c => c.suit === gameState.trumpSuit);
+            if (trumps.length > 0) return trumps;
+            return [...hand];
         }
 
-        function countSuitInHand(hand, suitKey) {
-            return hand.filter(c => c.suit === suitKey).length;
-        }
-
-        function isPartOfUnmeldedPair(card, hand, team) {
-            if (card.rank !== 'KING' && card.rank !== 'OBER') return false;
-            const alreadyMelded = (gameState.meldedSuits[team] || []).includes(card.suit);
-            if (alreadyMelded) return false;
-            const partnerRank = card.rank === 'KING' ? 'OBER' : 'KING';
-            return hand.some(c => c.suit === card.suit && c.rank === partnerRank);
-        }
-
-        function shouldAIDoFaceDownLead(seat, hand, chosenIdx) {
-            const card = hand[chosenIdx];
-            if (!card || card.suit === gameState.trumpSuit) return false;
-
-            // Verdecktes Ass ("zweite Alte"): sinnvoll, wenn die KI ggf. noch ein zweites Ass derselben Farbe hat oder Punkte sichern will
-            if (card.rank === 'ASS') {
-                const hasSecondSameAce = hand.some((c, idx) => idx !== chosenIdx && c.suit === card.suit && c.rank === 'ASS');
-                return hasSecondSameAce || Math.random() < 0.45;
-            }
-
-            // Verdecktes "höher hat": sinnvoll mit hohem Nicht-Trumpf (Zehner/König/Ober), wenn noch Karten der Farbe da sind
-            if (card.order >= RANKS.OBER.order) {
-                return Math.random() < 0.45;
-            }
-
-            return false;
-        }
-
-        function chooseAILeadCard(seat, hand) {
-            const team = getSeatTeam(seat);
-            let candidateIndices = hand.map((_, idx) => idx);
-
-            if (gameState.firstTrickOfGame) {
-                const nonTrumpIndices = candidateIndices.filter(idx => hand[idx].suit !== gameState.trumpSuit);
-                if (nonTrumpIndices.length > 0) {
-                    candidateIndices = nonTrumpIndices;
-                }
-            }
-
-            // Ungemeldete Paare (König + Ober) nach Möglichkeit erst nach dem Melden oder nur gezwungenermaßen anspielen
-            const nonPairCandidates = candidateIndices.filter(idx => !isPartOfUnmeldedPair(hand[idx], hand, team));
-            if (nonPairCandidates.length > 0) {
-                candidateIndices = nonPairCandidates;
-            }
-
-            // In der Talon-Phase: gerne 7er/Unter oder lange Nicht-Trumpffarben anspielen, um Stiche zu machen (für Melden/7er-Raub)
-            if (gameState.phase === 'TALON') {
-                let bestLeadIdx = candidateIndices[0];
-                let bestLeadScore = -999;
-
-                candidateIndices.forEach(idx => {
-                    const c = hand[idx];
-                    let score = 0;
-
-                    if (c.suit === gameState.trumpSuit) {
-                        // Trumpf nur ungern früh anspielen, außer es ist eine kleine 7er/Unter zum Ziehen
-                        score -= 25;
-                        if (c.rank === 'SEVEN') score += 8;
-                    } else {
-                        // Nicht-Trumpf bevorzugen, besonders wenn die KI in dieser Farbe mehrere Karten hält
-                        score += 12 + countSuitInHand(hand, c.suit) * 4;
-                        // Kleine Karten (7, U) zuerst zum Anspielen, damit starke Karten (A, 10) nicht leicht weggeschnappt werden
-                        if (c.rank === 'SEVEN') score += 14;
-                        else if (c.rank === 'UNTER') score += 10;
-                        else if (c.rank === 'OBER') score += 4;
-                        else if (c.rank === 'KING') score += 2;
-                        else if (c.rank === 'TEN') score -= 4;
-                        else if (c.rank === 'ASS') score -= 6;
-                    }
-
-                    if (score > bestLeadScore) {
-                        bestLeadScore = score;
-                        bestLeadIdx = idx;
-                    }
-                });
-
-                return bestLeadIdx;
-            }
-
-            // In der strikten Phase (ohne Talon): Trumpf bzw. hohe Stiche gezielt einsetzen
-            let bestIdx = candidateIndices[0];
-            let bestScore = -999;
-            candidateIndices.forEach(idx => {
-                const c = hand[idx];
-                const isTrump = c.suit === gameState.trumpSuit;
-                const score = (isTrump ? 25 : 0) + c.value * 2 + countSuitInHand(hand, c.suit);
-                if (score > bestScore) {
-                    bestScore = score;
-                    bestIdx = idx;
-                }
-            });
-            return bestIdx;
-        }
-
-        function chooseAIResponseCard(seat, hand) {
-            const team = getSeatTeam(seat);
-            const leadEntry = gameState.trickCards[0];
-            const leadCard = leadEntry.card;
-            const currentWinnerSeat = evaluateTrickCards(gameState.trickCards);
-            const partnerCurrentlyWinning = getSeatTeam(currentWinnerSeat) === team;
-            const trickPointsSoFar = gameState.trickCards.reduce((sum, e) => sum + e.card.value, 0);
-            const isLastToPlay = gameState.trickCards.length === getActiveSeats().length - 1;
-
-            // Sonderfall 1. Stich verdeckt: "höher hat" -> möglichst höher als leadCard derselben Farbe bedienen
-            if (gameState.firstTrickOfGame && leadEntry.faceDown && leadCard.suit !== gameState.trumpSuit && leadCard.rank !== 'ASS') {
-                const sameSuitHigher = hand
-                    .map((c, idx) => ({ c, idx }))
-                    .filter(item => item.c.suit === leadCard.suit && item.c.order > leadCard.order)
-                    .sort((a, b) => a.c.order - b.c.order);
-                if (sameSuitHigher.length > 0) {
-                    return sameSuitHigher[0].idx;
-                }
-            }
-
-            if (gameState.phase === 'STRICT') {
-                const validIndices = [];
-                hand.forEach((c, idx) => {
-                    if (isValidMove(c, hand, leadCard)) validIndices.push(idx);
-                });
-
-                if (validIndices.length > 0) {
-                    // Wenn der Stich viele Punkte bringt oder der Gegner ihn gerade hält: möglichst günstig gewinnen
-                    if (!partnerCurrentlyWinning) {
-                        const winningOptions = validIndices
-                            .filter(idx => {
-                                const simulated = [...gameState.trickCards, { seat, card: hand[idx] }];
-                                return evaluateTrickCards(simulated) === seat;
-                            })
-                            .sort((a, b) => {
-                                const ca = hand[a];
-                                const cb = hand[b];
-                                const costA = (ca.suit === gameState.trumpSuit ? 20 : 0) + ca.value;
-                                const costB = (cb.suit === gameState.trumpSuit ? 20 : 0) + cb.value;
-                                return costA - costB;
-                            });
-
-                        if (winningOptions.length > 0 && (trickPointsSoFar >= 10 || isLastToPlay || gameState.teamTricks[team] === 0)) {
-                            return winningOptions[0];
-                        }
-                    }
-
-                    // Wenn Partner schon gewinnt: Punkte schmieren (Ass/10er) oder kleinste Karte ablegen
-                    if (partnerCurrentlyWinning && isLastToPlay && trickPointsSoFar >= 0) {
-                        let bestSchmierIdx = -1;
-                        let bestSchmierVal = 9;
-                        validIndices.forEach(idx => {
-                            const c = hand[idx];
-                            if (c.suit !== gameState.trumpSuit && c.value > bestSchmierVal && !isPartOfUnmeldedPair(c, hand, team)) {
-                                bestSchmierVal = c.value;
-                                bestSchmierIdx = idx;
-                            }
-                        });
-                        if (bestSchmierIdx !== -1) return bestSchmierIdx;
-                    }
-
-                    let lowestIdx = validIndices[0];
-                    let lowestCost = 999;
-                    validIndices.forEach(idx => {
-                        const c = hand[idx];
-                        const cost = (c.suit === gameState.trumpSuit ? 30 : 0) + c.value + (isPartOfUnmeldedPair(c, hand, team) ? 15 : 0);
-                        if (cost < lowestCost) {
-                            lowestCost = cost;
-                            lowestIdx = idx;
-                        }
-                    });
-                    return lowestIdx;
-                }
-            }
-
-            // Im allerersten Stich gibt es keine Trumpfwirkung: KI sticht nicht mit Trumpf
-            if (gameState.firstTrickOfGame) {
-                const nonTrumpIndices = hand.map((c, i) => c.suit !== gameState.trumpSuit ? i : -1).filter(i => i !== -1);
-                const pool = nonTrumpIndices.length > 0 ? nonTrumpIndices : hand.map((_, i) => i);
-                let lowestIdx = pool[0];
-                let minVal = 999;
-                pool.forEach(i => {
-                    const c = hand[i];
-                    const cost = c.value + (isPartOfUnmeldedPair(c, hand, team) ? 15 : 0);
-                    if (cost < minVal) {
-                        minVal = cost;
-                        lowestIdx = i;
-                    }
-                });
-                return lowestIdx;
-            }
-
-            // In der Talon-Phase: wertvolle Stiche (>= 10 Augen) oder den allerersten Stich für Melden/7er-Raub gezielt mitnehmen
-            const wantsTrickInTalon = !partnerCurrentlyWinning && (
-                trickPointsSoFar >= 10 ||
-                (gameState.teamTricks[team] === 0 && trickPointsSoFar >= 4)
-            );
-
-            if (wantsTrickInTalon) {
-                // Bevorzugt mit gleicher Farbe stechen, sonst mit möglichst kleinem Trumpf
-                const sameSuitWinners = [];
-                const trumpWinners = [];
-
-                for (let i = 0; i < hand.length; i++) {
-                    const c = hand[i];
-                    if (isPartOfUnmeldedPair(c, hand, team) && c.value < 10) continue;
-                    const simulated = [...gameState.trickCards, { seat, card: c }];
-                    if (evaluateTrickCards(simulated) === seat) {
-                        if (c.suit === leadCard.suit) {
-                            sameSuitWinners.push({ i, cost: c.value });
-                        } else if (c.suit === gameState.trumpSuit) {
-                            trumpWinners.push({ i, cost: c.value });
-                        }
-                    }
-                }
-
-                if (sameSuitWinners.length > 0) {
-                    sameSuitWinners.sort((a, b) => a.cost - b.cost);
-                    return sameSuitWinners[0].i;
-                }
-                if (trumpWinners.length > 0 && trickPointsSoFar >= 10) {
-                    trumpWinners.sort((a, b) => a.cost - b.cost);
-                    return trumpWinners[0].i;
-                }
-            }
-
-            // Wenn Partner den Stich schon hat, schmiert die KI gerne Augen (Ass oder 10er ohne Trumpf)
-            if (partnerCurrentlyWinning && isLastToPlay) {
-                let bestSchmierIdx = -1;
-                let bestSchmierVal = 9;
-                hand.forEach((c, i) => {
-                    if (c.suit !== gameState.trumpSuit && c.value > bestSchmierVal && !isPartOfUnmeldedPair(c, hand, team)) {
-                        bestSchmierVal = c.value;
-                        bestSchmierIdx = i;
-                    }
-                });
-                if (bestSchmierIdx !== -1) return bestSchmierIdx;
-            }
-
-            // Sonst möglichst billige Karte abwerfen und ungemeldete Paare schonen
-            let lowestIdx = 0;
-            let minVal = 999;
-            hand.forEach((c, i) => {
-                const weight = (c.suit === gameState.trumpSuit ? 45 : 0) + c.value + (isPartOfUnmeldedPair(c, hand, team) ? 15 : 0);
-                if (weight < minVal) {
-                    minVal = weight;
-                    lowestIdx = i;
-                }
-            });
-            return lowestIdx;
-        }
-
-        function isValidMove(cardToPlay, hand, leadCard) {
-            if (gameState.phase === 'TALON') return true;
-
-            const leadSuit = leadCard ? leadCard.suit : cardToPlay.suit;
-            const hasLeadSuit = hand.some(c => c.suit === leadSuit);
-            const hasTrump = hand.some(c => c.suit === gameState.trumpSuit);
-
-            if (hasLeadSuit) {
-                if (cardToPlay.suit !== leadSuit) return false;
-
-                const higherInSuit = hand.filter(c => c.suit === leadSuit && c.order > (leadCard ? leadCard.order : 0));
-                if (higherInSuit.length > 0) {
-                    return cardToPlay.order > (leadCard ? leadCard.order : 0);
-                }
-                return true;
-            }
-
-            if (hasTrump) {
-                if (cardToPlay.suit !== gameState.trumpSuit) return false;
-
-                if (leadSuit === gameState.trumpSuit && leadCard) {
-                    const higherTrump = hand.filter(c => c.suit === gameState.trumpSuit && c.order > leadCard.order);
-                    if (higherTrump.length > 0) {
-                        return cardToPlay.order > leadCard.order;
-                    }
-                }
-                return true;
-            }
-
-            return true;
-        }
-
-        function resolveTrick() {
-            const seats = getActiveSeats();
-            if (gameState.trickCards.length < seats.length) return;
-
-            gameState.trickCards.forEach(e => e.faceDown = false);
-
-            const winnerSeat = evaluateTrickCards(gameState.trickCards);
-            const winnerTeam = getSeatTeam(winnerSeat);
-            const trickPoints = gameState.trickCards.reduce((sum, e) => sum + e.card.value, 0);
-
-            gameState.teamScores[winnerTeam] += trickPoints;
-            gameState.teamTricks[winnerTeam]++;
-            gameState.lastTrickWinner = getSeatDisplayName(winnerSeat);
-
-            if (winnerTeam === 'US') {
-                sound.playTrickWin();
-                showFloatingScore(trickPoints, true);
-                logMessage(`🎉 <strong>${getSeatDisplayName(winnerSeat)} sticht!</strong> (+${trickPoints} Pkt für ${gameState.mode === '4P' ? 'euer Team' : 'dich'})`);
-            } else {
-                showFloatingScore(trickPoints, false);
-                logMessage(`🤖 <strong>${getSeatDisplayName(winnerSeat)} sticht!</strong> (+${trickPoints} Pkt)`);
-            }
-
-            gameState.firstTrickOfGame = false;
-            gameState.trickCards = [];
-            gameState.leadPlayer = winnerSeat;
-            gameState.turn = winnerSeat;
-
-            if (gameState.phase === 'TALON') {
-                const drawOrder = [];
-                let curr = winnerSeat;
-                for (let i = 0; i < seats.length; i++) {
-                    drawOrder.push(curr);
-                    curr = getNextSeat(curr);
-                }
-
-                for (const s of drawOrder) {
-                    if (gameState.talon.length > 0) {
-                        gameState.hands[s].push(gameState.talon.pop());
-                    } else if (gameState.trumpCard) {
-                        gameState.hands[s].push(gameState.trumpCard);
-                        gameState.trumpCard = null;
-                    }
-                }
-
-                if (gameState.talon.length === 0 && !gameState.trumpCard) {
-                    gameState.phase = 'STRICT';
-                    logMessage(`⚠️ <strong>Talon leer!</strong> Ab jetzt Farb- &amp; Stichzwang.`);
-                }
-            }
-
-            const allHandsEmpty = seats.every(s => gameState.hands[s].length === 0);
-            if (allHandsEmpty) {
-                gameState.teamScores[winnerTeam] += 10;
-                if (winnerTeam === 'US') {
-                    logMessage(`✨ <strong>Letzter Stich (+10 Bonus) geht an EUCH!</strong>`);
-                } else {
-                    logMessage(`✨ <strong>Letzter Stich (+10 Bonus) geht an GEGNER!</strong>`);
-                }
-            }
-
-            checkWinCondition();
-            updateUI();
-
-            if (gameState.gameActive && gameState.turn !== 'PLAYER') {
-                setTimeout(handleAITurn, 800);
-            }
-        }
-
-        function canSwapTrump(hand) {
-            if (!gameState.trumpCard || gameState.phase !== 'TALON') return false;
-            return hand.some(c => c.suit === gameState.trumpSuit && c.rank === 'SEVEN');
-        }
-
-        function swapTrumpCard(seat) {
-            if (!gameState.trumpCard) return;
-            const team = getSeatTeam(seat);
-            if (gameState.teamTricks[team] < 1) return;
+        function getAvailableMelds(seat) {
+            const team = getTeam(seat);
+            if (gameState.tricksCount[team] < 1) return [];
+            if (gameState.currentTrick.length !== 0) return [];
+            if (isTalonEmpty()) return [];
 
             const hand = gameState.hands[seat];
-            const sevenIndex = hand.findIndex(c => c.suit === gameState.trumpSuit && c.rank === 'SEVEN');
-
-            if (sevenIndex !== -1) {
-                const oldTrump = gameState.trumpCard;
-                gameState.trumpCard = hand[sevenIndex];
-                hand[sevenIndex] = oldTrump;
-
-                logMessage(`🔄 <strong>${getSeatDisplayName(seat)} raubt den Trumpf mit der 7er!</strong>`);
-                sound.playCardSlide();
-                updateUI();
-            }
-        }
-
-        function getAvailableMelds(hand, team = 'US') {
             const melds = [];
-            const alreadyMelded = gameState.meldedSuits[team] || [];
-            for (const suitKey in SUITS) {
-                if (alreadyMelded.includes(suitKey)) continue;
-
+            for (const suitKey of Object.keys(SUITS)) {
+                if (gameState.meldedSuits[team].has(suitKey)) continue;
                 const hasKing = hand.some(c => c.suit === suitKey && c.rank === 'KING');
-                const hasDame = hand.some(c => c.suit === suitKey && c.rank === 'OBER');
-                if (hasKing && hasDame) {
+                const hasOber = hand.some(c => c.suit === suitKey && c.rank === 'OBER');
+                if (hasKing && hasOber) {
                     melds.push({
                         suit: suitKey,
-                        isTrump: suitKey === gameState.trumpSuit,
                         points: suitKey === gameState.trumpSuit ? 40 : 20
                     });
                 }
@@ -1471,339 +929,516 @@
             return melds;
         }
 
-        function findBestMeld(hand, team = 'THEM') {
-            const melds = getAvailableMelds(hand, team);
-            if (melds.length === 0) return null;
-            melds.sort((a, b) => b.points - a.points);
-            return melds[0];
+        function canSwapTrump(seat) {
+            const team = getTeam(seat);
+            if (gameState.tricksCount[team] < 1) return false;
+            if (gameState.currentTrick.length !== 0) return false;
+            if (!gameState.trumpCard || gameState.talon.length === 0) return false;
+            return gameState.hands[seat].some(c => c.suit === gameState.trumpSuit && c.rank === 'SEVEN');
         }
 
-        function declareMeld(suitKey) {
-            if (!gameState.gameActive || gameState.turn !== 'PLAYER') return;
-            if (gameState.phase !== 'TALON') return;
-            if (gameState.teamTricks.US < 1) return;
-            if ((gameState.meldedSuits.US || []).includes(suitKey)) return;
+        function executeMeld(seat, suitKey) {
+            const team = getTeam(seat);
+            const melds = getAvailableMelds(seat);
+            const meld = melds.find(m => m.suit === suitKey);
+            if (!meld) return false;
 
-            const isTrump = suitKey === gameState.trumpSuit;
-            const points = isTrump ? 40 : 20;
+            gameState.meldedSuits[team].add(suitKey);
+            gameState.scores[team] += meld.points;
+            const label = suitKey === gameState.trumpSuit ? `Trumpf-Paar (${meld.points})` : `Paar (${meld.points})`;
+            gameState.lastMeldText = `📣 ${seatLabel(seat)}: ${label} – ${SUITS[suitKey].name}`;
+            playSound('meld');
+            showFloatingScore(`+${meld.points} Pkt (${SUITS[suitKey].name})`);
+            logEvent(`${seatLabel(seat)} meldet ${label} in ${SUITS[suitKey].name}!`, true);
 
-            gameState.teamScores.US += points;
-            if (!gameState.meldedSuits.US.includes(suitKey)) {
-                gameState.meldedSuits.US.push(suitKey);
-            }
-            gameState.lastMeld = {
-                who: 'Du',
-                suit: suitKey,
-                points: points,
-                isTrump: isTrump
-            };
-            sound.playMeldFanfare();
-            showFloatingScore(points, true);
-            logMessage(`📣 <strong>Du meldest ein ${isTrump ? 'Trumpf-Paar (40er)' : 'Paar (20er)'}</strong> in ${SUITS[suitKey].name}!`);
-
-            checkWinCondition();
+            if (checkWinCondition()) return true;
             updateUI();
+            return true;
         }
 
-        function checkWinCondition() {
-            const allHandsEmpty = getActiveSeats().every(s => gameState.hands[s].length === 0);
-            if (gameState.teamScores.US >= TARGET_SCORE || gameState.teamScores.THEM >= TARGET_SCORE || allHandsEmpty) {
-                gameState.gameActive = false;
+        function swapTrumpCard(seat) {
+            if (!canSwapTrump(seat)) return false;
+            const hand = gameState.hands[seat];
+            const sevenIdx = hand.findIndex(c => c.suit === gameState.trumpSuit && c.rank === 'SEVEN');
+            if (sevenIdx === -1) return false;
 
-                const playerWon = gameState.teamScores.US >= gameState.teamScores.THEM;
+            const sevenCard = hand[sevenIdx];
+            hand[sevenIdx] = gameState.trumpCard;
+            gameState.trumpCard = sevenCard;
+            sortHand(hand, gameState.trumpSuit);
 
-                const modal = document.getElementById('modal-gameover');
-                const title = document.getElementById('gameover-title');
-                const msg = document.getElementById('gameover-message');
-                const icon = document.getElementById('gameover-icon');
-                const pScore = document.getElementById('gameover-player-score');
-                const aScore = document.getElementById('gameover-ai-score');
+            playSound('meld');
+            showFloatingScore('7er Trumpfraub!');
+            logEvent(`${seatLabel(seat)} raubt den Trumpf (${RANKS[hand[sevenIdx].rank].name}) mit dem Siebener!`, true);
+            updateUI();
+            return true;
+        }
 
-                if (modal) {
-                    pScore.innerText = gameState.teamScores.US;
-                    aScore.innerText = gameState.teamScores.THEM;
+        function playCard(seat, cardId, faceDown = false) {
+            if (gameState.gameOver || gameState.isResolvingTrick || gameState.turn !== seat) return;
+            const hand = gameState.hands[seat];
+            const idx = hand.findIndex(c => c.id === cardId);
+            if (idx === -1) return;
 
-                    if (playerWon) {
-                        icon.innerText = '🏆';
-                        title.innerText = gameState.mode === '4P' ? 'KREUZGAIGEL GEWONNEN!' : 'GAIGEL GEWONNEN!';
-                        title.className = 'font-cinzel text-2xl md:text-3xl font-extrabold text-amber-400 mb-1';
-                        msg.innerText = gameState.mode === '4P'
-                            ? `Starkes Zusammenspiel! Ihr habt ${gameState.teamScores.US} Punkte erreicht.`
-                            : `Hervorragend! Du hast ${gameState.teamScores.US} Punkte erreicht.`;
-                        sound.playVictory();
+            const legal = getLegalCards(seat);
+            if (!legal.some(c => c.id === cardId)) return;
+
+            const card = hand.splice(idx, 1)[0];
+            const isLead = gameState.currentTrick.length === 0;
+            let playedFaceDown = false;
+
+            if (gameState.trickNumber === 1) {
+                if (isLead) {
+                    if (faceDown && card.suit !== gameState.trumpSuit) {
+                        playedFaceDown = true;
+                        gameState.firstTrickMode = card.rank === 'ASS' ? 'ZWEITE_ALTE' : 'HOEHER_HAT';
+                        const ansage = card.rank === 'ASS' ? 'zweite Alte (Ass)' : 'höher hat';
+                        logEvent(`${seatLabel(seat)} spielt verdeckt an: „${ansage}“!`, true);
+                    } else if (card.rank === 'ASS' && card.suit !== gameState.trumpSuit) {
+                        gameState.firstTrickMode = 'GE_ELFEN';
+                        logEvent(`${seatLabel(seat)} eröffnet offen mit Ass: „Ge-Elfen“!`, true);
                     } else {
-                        icon.innerText = '💔';
-                        title.innerText = 'SCHADE!';
-                        title.className = 'font-cinzel text-2xl md:text-3xl font-extrabold text-rose-400 mb-1';
-                        msg.innerText = `Die Gegenseite gewinnt mit ${gameState.teamScores.THEM} Punkten.`;
+                        gameState.firstTrickMode = 'NORMAL';
                     }
-                    modal.classList.remove('hidden');
+                } else if (gameState.firstTrickMode === 'ZWEITE_ALTE' || gameState.firstTrickMode === 'HOEHER_HAT') {
+                    playedFaceDown = true;
+                }
+            }
+
+            gameState.currentTrick.push({ seat, card, faceDown: playedFaceDown });
+            if (seat === 'player') gameState.faceDownLead = false;
+            playSound('card');
+
+            if (gameState.currentTrick.length >= gameState.seats.length) {
+                gameState.isResolvingTrick = true;
+                updateUI();
+                setTimeout(resolveTrick, 900);
+            } else {
+                gameState.turn = getNextSeat(seat);
+                updateUI();
+                if (gameState.turn !== 'player') {
+                    setTimeout(() => runAITurn(gameState.turn), 650);
                 }
             }
         }
 
+        function evaluateTrickCards(trick, trumpSuit, trickNumber, firstTrickMode) {
+            const lead = trick[0];
+            if (trickNumber === 1) {
+                if (firstTrickMode === 'GE_ELFEN') {
+                    return lead.seat;
+                }
+                if (firstTrickMode === 'ZWEITE_ALTE') {
+                    const secondAce = trick.slice(1).find(t => t.card.rank === 'ASS' && t.card.suit === lead.card.suit);
+                    return secondAce ? secondAce.seat : lead.seat;
+                }
+                if (firstTrickMode === 'HOEHER_HAT') {
+                    let best = lead;
+                    for (let i = 1; i < trick.length; i++) {
+                        const c = trick[i].card;
+                        if (c.suit === lead.card.suit && RANKS[c.rank].order > RANKS[best.card.rank].order) {
+                            best = trick[i];
+                        }
+                    }
+                    return best.seat;
+                }
+            }
+
+            let winner = lead;
+            for (let i = 1; i < trick.length; i++) {
+                const curr = trick[i];
+                const wCard = winner.card;
+                const cCard = curr.card;
+                if (cCard.suit === trumpSuit && wCard.suit !== trumpSuit) {
+                    winner = curr;
+                } else if (cCard.suit === wCard.suit && RANKS[cCard.rank].order > RANKS[wCard.rank].order) {
+                    winner = curr;
+                }
+            }
+            return winner.seat;
+        }
+
+        function drawCardsAfterTrick(winnerSeat) {
+            const startIdx = gameState.seats.indexOf(winnerSeat);
+            for (let offset = 0; offset < gameState.seats.length; offset++) {
+                const s = gameState.seats[(startIdx + offset) % gameState.seats.length];
+                while (gameState.hands[s].length < 5) {
+                    if (gameState.talon.length > 0) {
+                        gameState.hands[s].push(gameState.talon.pop());
+                    } else if (gameState.trumpCard) {
+                        gameState.hands[s].push(gameState.trumpCard);
+                        gameState.trumpCard = null;
+                    } else {
+                        break;
+                    }
+                }
+                sortHand(gameState.hands[s], gameState.trumpSuit);
+            }
+        }
+
+        function resolveTrick() {
+            const trick = gameState.currentTrick;
+            const winnerSeat = evaluateTrickCards(trick, gameState.trumpSuit, gameState.trickNumber, gameState.firstTrickMode);
+            const winnerTeam = getTeam(winnerSeat);
+            const points = trick.reduce((sum, item) => sum + RANKS[item.card.rank].points, 0);
+
+            gameState.scores[winnerTeam] += points;
+            gameState.tricksCount[winnerTeam] += 1;
+            playSound('trick');
+
+            const wName = seatLabel(winnerSeat);
+            document.getElementById('last-trick-winner').textContent = `${wName} (+${points})`;
+            logEvent(`${wName} gewinnt Stich #${gameState.trickNumber} (+${points} Pkt).`);
+            if (points > 0) {
+                showFloatingScore(`${wName}: +${points} Pkt`);
+            }
+
+            drawCardsAfterTrick(winnerSeat);
+
+            gameState.currentTrick = [];
+            gameState.firstTrickMode = null;
+            gameState.trickNumber += 1;
+            gameState.turn = winnerSeat;
+            gameState.leadSeat = winnerSeat;
+            gameState.isResolvingTrick = false;
+
+            if (checkWinCondition()) return;
+
+            const allEmpty = gameState.seats.every(s => gameState.hands[s].length === 0);
+            if (allEmpty) {
+                endGameByPoints();
+                return;
+            }
+
+            updateUI();
+            if (gameState.turn !== 'player') {
+                setTimeout(() => runAITurn(gameState.turn), 650);
+            }
+        }
+
+        function checkWinCondition() {
+            if (gameState.scores.player >= 101) {
+                finishMatch('player', '101 Punkte erreicht!');
+                return true;
+            }
+            if (gameState.scores.ai >= 101) {
+                finishMatch('ai', 'Gegner hat 101 Punkte erreicht.');
+                return true;
+            }
+            return false;
+        }
+
+        function endGameByPoints() {
+            if (gameState.scores.player >= gameState.scores.ai) {
+                finishMatch('player', `Alle Karten gespielt (${gameState.scores.player} : ${gameState.scores.ai}).`);
+            } else {
+                finishMatch('ai', `Alle Karten gespielt (${gameState.scores.player} : ${gameState.scores.ai}).`);
+            }
+        }
+
+        function finishMatch(winnerTeam, reason) {
+            gameState.gameOver = true;
+            updateUI();
+            const isWin = winnerTeam === 'player';
+            if (isWin) playSound('win');
+            document.getElementById('gameover-emoji').textContent = isWin ? '🏆' : '🃏';
+            document.getElementById('gameover-title').textContent = isWin ? 'Sieg!' : 'Verloren';
+            document.getElementById('gameover-reason').textContent = reason;
+            document.getElementById('gameover-player-score').textContent = gameState.scores.player;
+            document.getElementById('gameover-ai-score').textContent = gameState.scores.ai;
+            document.getElementById('modal-gameover').classList.remove('hidden');
+        }
+
+        // TAKTISCHE KI-LOGIK
+        function runAITurn(seat) {
+            if (gameState.gameOver || gameState.isResolvingTrick || gameState.turn !== seat) return;
+
+            const isLead = gameState.currentTrick.length === 0;
+            if (isLead) {
+                if (canSwapTrump(seat)) {
+                    swapTrumpCard(seat);
+                }
+                const melds = getAvailableMelds(seat);
+                if (melds.length > 0) {
+                    melds.sort((a, b) => b.points - a.points);
+                    if (executeMeld(seat, melds[0].suit)) return;
+                }
+            }
+
+            const legal = getLegalCards(seat);
+            if (legal.length === 0) return;
+
+            const team = getTeam(seat);
+            const hand = gameState.hands[seat];
+            const isPairCard = (c) => (c.rank === 'KING' || c.rank === 'OBER') &&
+                !gameState.meldedSuits[team].has(c.suit) &&
+                hand.some(o => o.suit === c.suit && o.rank === (c.rank === 'KING' ? 'OBER' : 'KING'));
+
+            let chosen = legal[0];
+            let playFaceDown = false;
+
+            if (isLead) {
+                // Im 1. Stich ggf. Ass offen (Ge-Elfen) oder verdeckt (zweite Alte) spielen
+                if (gameState.trickNumber === 1) {
+                    const nonTrumpAce = legal.find(c => c.rank === 'ASS' && c.suit !== gameState.trumpSuit);
+                    if (nonTrumpAce) {
+                        chosen = nonTrumpAce;
+                        playFaceDown = Math.random() < 0.35;
+                    } else {
+                        const lowSafe = legal.filter(c => !isPairCard(c)).sort((a, b) => RANKS[a.rank].order - RANKS[b.rank].order);
+                        chosen = (lowSafe.length > 0 ? lowSafe : legal)[0];
+                    }
+                } else {
+                    const nonPair = legal.filter(c => !isPairCard(c));
+                    const pool = nonPair.length > 0 ? nonPair : legal;
+                    // Wenn noch kein Stich gemacht wurde, gerne mit starker Karte Stich holen für Melden/7er-Raub
+                    if (gameState.tricksCount[team] === 0) {
+                        pool.sort((a, b) => RANKS[b.rank].order - RANKS[a.rank].order);
+                        chosen = pool[0];
+                    } else {
+                        const nonTrumpLow = pool.filter(c => c.suit !== gameState.trumpSuit).sort((a, b) => RANKS[a.rank].order - RANKS[b.rank].order);
+                        chosen = (nonTrumpLow.length > 0 ? nonTrumpLow : pool.sort((a, b) => RANKS[a.rank].order - RANKS[b.rank].order))[0];
+                    }
+                }
+            } else {
+                const trick = gameState.currentTrick;
+                const trickPoints = trick.reduce((s, t) => s + RANKS[t.card.rank].points, 0);
+                const winningCards = legal.filter(c => {
+                    const sim = [...trick, { seat, card: c, faceDown: false }];
+                    return evaluateTrickCards(sim, gameState.trumpSuit, gameState.trickNumber, gameState.firstTrickMode) === seat;
+                });
+
+                const currentWinner = evaluateTrickCards(trick, gameState.trumpSuit, gameState.trickNumber, gameState.firstTrickMode);
+                const partnerWinning = getTeam(currentWinner) === team;
+
+                if (partnerWinning && trick.length === gameState.seats.length - 1) {
+                    // Partner gewinnt bereits sicher -> Augen schmieren (ohne Paar zu zerreißen)
+                    const smear = legal.filter(c => !isPairCard(c) && c.suit !== gameState.trumpSuit)
+                        .sort((a, b) => RANKS[b.rank].points - RANKS[a.rank].points);
+                    chosen = smear.length > 0 ? smear[0] : legal.sort((a, b) => RANKS[a.rank].order - RANKS[b.rank].order)[0];
+                } else if (winningCards.length > 0 && (trickPoints >= 10 || gameState.tricksCount[team] === 0 || isTalonEmpty())) {
+                    // Stich günstig mit kleinster gewinnender Karte sichern
+                    winningCards.sort((a, b) => {
+                        const aTrump = a.suit === gameState.trumpSuit ? 1 : 0;
+                        const bTrump = b.suit === gameState.trumpSuit ? 1 : 0;
+                        if (aTrump !== bTrump) return aTrump - bTrump;
+                        return RANKS[a.rank].order - RANKS[b.rank].order;
+                    });
+                    chosen = winningCards[0];
+                } else {
+                    // Niedrigste Karte abwerfen, Paare schonen
+                    const safeDiscard = legal.filter(c => !isPairCard(c) && c.suit !== gameState.trumpSuit)
+                        .sort((a, b) => RANKS[a.rank].order - RANKS[b.rank].order);
+                    const fallbackDiscard = legal.filter(c => !isPairCard(c))
+                        .sort((a, b) => RANKS[a.rank].order - RANKS[b.rank].order);
+                    chosen = (safeDiscard[0] || fallbackDiscard[0] || legal[0]);
+                }
+            }
+
+            playCard(seat, chosen.id, playFaceDown);
+        }
+
         function updateUI() {
+            if (!gameState) return;
+
             const is4P = gameState.mode === '4P';
+            document.getElementById('btn-toggle-mode').textContent = is4P ? '4er Kreuzgaigel' : '2er Gaigel';
+            document.getElementById('btn-mode-mobile').textContent = is4P ? '4er' : '2er';
+            document.getElementById('game-phase-badge').textContent = isTalonEmpty() ? 'Endspiel (Zwang)' : 'Talon';
 
-            document.getElementById('btn-toggle-mode').innerText = is4P ? 'Kreuzgaigel (4er)' : '2er Gaigel';
-            document.getElementById('btn-mode-mobile').innerText = is4P ? '4er Kreuz' : '2er';
+            // Top seat labels
+            document.getElementById('top-seat-avatar').textContent = is4P ? '🤝' : '🤖';
+            document.getElementById('top-seat-name').textContent = is4P ? 'Partner (KI)' : 'Gegner (KI)';
+            document.getElementById('ai-score-label').textContent = is4P ? 'Gegner Pkt' : 'Pkt';
+            document.getElementById('player-score-label').textContent = is4P ? 'Team Pkt' : 'Pkt';
+            document.getElementById('top-tricks-label').textContent = is4P ? 'Gegner St.' : 'Stiche';
+            document.getElementById('bottom-tricks-label').textContent = is4P ? 'Team Stiche:' : 'Deine Stiche:';
 
-            document.getElementById('bottom-seat-name').innerText = is4P ? 'Wir (Du & Partner)' : 'Du (Spieler)';
-            document.getElementById('top-seat-name').innerText = is4P ? 'Partner (Oben)' : 'Gegner (KI)';
-            document.getElementById('top-seat-avatar').innerText = is4P ? '🤝' : '🤖';
-            document.getElementById('ai-score').innerText = gameState.teamScores.THEM;
-            document.getElementById('ai-score-label').innerText = is4P ? 'Pkt (Gegner)' : 'Pkt';
-            document.getElementById('player-score').innerText = gameState.teamScores.US;
-            document.getElementById('player-score-label').innerText = is4P ? 'Pkt (Team)' : 'Pkt';
+            document.getElementById('player-score').textContent = gameState.scores.player;
+            document.getElementById('ai-score').textContent = gameState.scores.ai;
+            document.getElementById('player-tricks-count').textContent = gameState.tricksCount.player;
+            document.getElementById('ai-tricks-count').textContent = gameState.tricksCount.ai;
 
-            document.getElementById('bottom-tricks-label').innerText = is4P ? 'Unsere Stiche:' : 'Deine Stiche:';
-            document.getElementById('top-tricks-label').innerText = is4P ? 'Gegner Stiche' : 'Stiche';
-            document.getElementById('player-tricks-count').innerText = gameState.teamTricks.US;
-            document.getElementById('ai-tricks-count').innerText = gameState.teamTricks.THEM;
-
+            // 4P West/East visibility
             const westBox = document.getElementById('west-seat-box');
             const eastBox = document.getElementById('east-seat-box');
+            const westPlayed = document.getElementById('played-card-west');
+            const eastPlayed = document.getElementById('played-card-east');
             if (is4P) {
                 westBox.classList.remove('hidden');
                 westBox.classList.add('flex');
                 eastBox.classList.remove('hidden');
                 eastBox.classList.add('flex');
-                document.getElementById('west-cards-count').innerText = gameState.hands.WEST.length;
-                document.getElementById('east-cards-count').innerText = gameState.hands.EAST.length;
-                document.getElementById('west-turn-dot').classList.toggle('hidden', gameState.turn !== 'WEST');
-                document.getElementById('east-turn-dot').classList.toggle('hidden', gameState.turn !== 'EAST');
+                westPlayed.classList.remove('hidden');
+                eastPlayed.classList.remove('hidden');
+                document.getElementById('west-cards-count').textContent = gameState.hands.west.length;
+                document.getElementById('east-cards-count').textContent = gameState.hands.east.length;
+                document.getElementById('west-turn-dot').classList.toggle('hidden', gameState.turn !== 'west');
+                document.getElementById('east-turn-dot').classList.toggle('hidden', gameState.turn !== 'east');
             } else {
                 westBox.classList.add('hidden');
                 westBox.classList.remove('flex');
                 eastBox.classList.add('hidden');
                 eastBox.classList.remove('flex');
+                westPlayed.classList.add('hidden');
+                eastPlayed.classList.add('hidden');
             }
 
-            const phaseBadge = document.getElementById('game-phase-badge');
-            if (gameState.phase === 'TALON') {
-                phaseBadge.innerText = 'Talon';
-                phaseBadge.className = 'font-bold text-emerald-400 text-[11px] md:text-xs leading-none';
-            } else {
-                phaseBadge.innerText = 'Strikte Phase';
-                phaseBadge.className = 'font-bold text-rose-400 text-[11px] md:text-xs leading-none animate-pulse';
-            }
+            document.getElementById('ai-turn-indicator').classList.toggle('hidden', gameState.turn !== 'ai');
 
-            document.getElementById('talon-count').innerText = `${gameState.talon.length}`;
-
-            if (gameState.trumpSuit) {
-                document.getElementById('trump-suit-icon').innerHTML = getSuitSVG(gameState.trumpSuit, 22);
-                document.getElementById('trump-suit-name').innerText = SUITS[gameState.trumpSuit].name;
-            }
-
+            // Talon & Trump
+            const talonStack = document.getElementById('talon-stack');
             const trumpSlot = document.getElementById('trump-card-slot');
+            document.getElementById('talon-count').textContent = gameState.talon.length;
+            talonStack.style.visibility = gameState.talon.length > 0 ? 'visible' : 'hidden';
+
             if (gameState.trumpCard) {
                 trumpSlot.innerHTML = createCardSVG(gameState.trumpCard.suit, gameState.trumpCard.rank, true);
+                trumpSlot.style.visibility = 'visible';
             } else {
-                trumpSlot.innerHTML = `<div class="card-dimensions border-2 border-dashed border-amber-500/30 rounded-xl flex items-center justify-center text-xs text-amber-400/50">Leer</div>`;
+                trumpSlot.innerHTML = '';
+                trumpSlot.style.visibility = 'hidden';
             }
 
-            const topHandContainer = document.getElementById('ai-hand-container');
-            topHandContainer.innerHTML = gameState.hands.TOP.map(() => createCardSVG(null, null, false)).join('');
+            document.getElementById('trump-suit-icon').innerHTML = getSuitSVG(gameState.trumpSuit, 18);
+            document.getElementById('trump-suit-name').textContent = SUITS[gameState.trumpSuit].name;
+            document.getElementById('trump-swap-hint').classList.toggle('hidden', !canSwapTrump('player'));
 
-            const topTurnInd = document.getElementById('ai-turn-indicator');
-            const promptBox = document.getElementById('trick-prompt');
+            // Top Hand (face down)
+            const aiHandContainer = document.getElementById('ai-hand-container');
+            aiHandContainer.innerHTML = '';
+            gameState.hands.ai.forEach(() => {
+                const div = document.createElement('div');
+                div.innerHTML = createCardSVG('EICHEL', 'ASS', false);
+                aiHandContainer.appendChild(div.firstElementChild);
+            });
 
-            if (gameState.turn !== 'PLAYER') {
-                topTurnInd.classList.toggle('hidden', gameState.turn !== 'TOP');
-                promptBox.innerText = `${getSeatDisplayName(gameState.turn)} am Zug...`;
-                promptBox.className = 'absolute left-1/2 bottom-1 -translate-x-1/2 text-center py-1 px-2.5 sm:px-3 md:py-1.5 md:px-4 rounded-full bg-slate-950/90 border border-indigo-500/60 text-indigo-300 text-[10px] sm:text-[11px] md:text-xs font-bold shadow-xl backdrop-blur max-w-max z-30';
-            } else {
-                topTurnInd.classList.add('hidden');
-                promptBox.innerText = gameState.playFaceDownNext ? 'Du spielst verdeckt an...' : 'Du bist am Zug!';
-                promptBox.className = 'absolute left-1/2 bottom-1 -translate-x-1/2 text-center py-1 px-2.5 sm:px-3 md:py-1.5 md:px-4 rounded-full bg-slate-950/90 border border-amber-500/80 text-amber-300 text-[10px] sm:text-[11px] md:text-xs font-bold shadow-xl backdrop-blur max-w-max z-30 animate-pulse';
-            }
-
-            const playedSlots = {
-                PLAYER: document.getElementById('played-card-player'),
-                TOP: document.getElementById('played-card-ai'),
-                WEST: document.getElementById('played-card-west'),
-                EAST: document.getElementById('played-card-east')
+            // Played Trick Cards
+            const slots = {
+                player: document.getElementById('played-card-player'),
+                ai: document.getElementById('played-card-ai'),
+                west: document.getElementById('played-card-west'),
+                east: document.getElementById('played-card-east')
             };
+            Object.values(slots).forEach(el => { if (el) el.innerHTML = ''; });
 
-            Object.values(playedSlots).forEach(el => { if (el) el.innerHTML = ''; });
-            playedSlots.WEST.classList.toggle('hidden', !is4P);
-            playedSlots.EAST.classList.toggle('hidden', !is4P);
-
-            gameState.trickCards.forEach(entry => {
-                const targetSlot = playedSlots[entry.seat];
-                if (targetSlot) {
-                    targetSlot.innerHTML = createCardSVG(entry.card.suit, entry.card.rank, !entry.faceDown);
-                }
+            gameState.currentTrick.forEach(item => {
+                const target = slots[item.seat];
+                if (!target) return;
+                const wrap = document.createElement('div');
+                wrap.className = 'animate-trick-card';
+                wrap.innerHTML = createCardSVG(item.card.suit, item.card.rank, !item.faceDown);
+                target.appendChild(wrap);
             });
 
-            // Zeigt an, ob verdeckt mit "zweite Alte" (Ass) oder "höher hat" angespielt wurde
-            const faceDownBanner = document.getElementById('facedown-call-banner');
-            const faceDownLead = gameState.firstTrickOfGame && gameState.trickCards.length > 0 && gameState.trickCards[0].faceDown
-                ? gameState.trickCards[0]
-                : null;
-            if (faceDownBanner) {
-                if (faceDownLead) {
-                    const callText = faceDownLead.card.rank === 'ASS' ? 'zweite Alte (Ass)' : 'höher hat';
-                    faceDownBanner.innerText = `🙈 ${getSeatDisplayName(faceDownLead.seat)} verdeckt: ${callText}`;
-                    faceDownBanner.classList.remove('hidden');
+            // Prompt banner
+            const promptEl = document.getElementById('trick-prompt');
+            if (gameState.isResolvingTrick) {
+                promptEl.textContent = 'Stich wird gewertet...';
+            } else if (gameState.turn === 'player') {
+                if (gameState.trickNumber === 1 && gameState.currentTrick.length === 0 && gameState.faceDownLead) {
+                    promptEl.textContent = 'Verdeckt anspielen wählen (Nicht-Trumpf)';
                 } else {
-                    faceDownBanner.classList.add('hidden');
-                    faceDownBanner.innerText = '';
+                    promptEl.textContent = gameState.currentTrick.length === 0 ? 'Du spielst aus' : 'Du bist am Zug';
                 }
-            }
-
-            const playerHandContainer = document.getElementById('player-hand-container');
-            playerHandContainer.innerHTML = '';
-
-            const isLeading = gameState.trickCards.length === 0;
-            const leadCard = isLeading ? null : gameState.trickCards[0].card;
-
-            gameState.hands.PLAYER.forEach((card, idx) => {
-                const cardWrapper = document.createElement('div');
-                cardWrapper.className = 'card-container cursor-pointer transition transform';
-
-                const isFirstLeadTrumpBlocked = gameState.firstTrickOfGame && isLeading && card.suit === gameState.trumpSuit && gameState.hands.PLAYER.some(c => c.suit !== gameState.trumpSuit);
-                const isPlayable = gameState.turn === 'PLAYER' && !isFirstLeadTrumpBlocked && isValidMove(card, gameState.hands.PLAYER, leadCard);
-                if (isPlayable) {
-                    cardWrapper.classList.add('card-playable');
-                } else if (gameState.turn === 'PLAYER' && (gameState.phase === 'STRICT' || isFirstLeadTrumpBlocked)) {
-                    cardWrapper.classList.add('card-disabled');
-                }
-
-                cardWrapper.innerHTML = createCardSVG(card.suit, card.rank, true);
-                cardWrapper.addEventListener('click', () => playPlayerCard(idx));
-                playerHandContainer.appendChild(cardWrapper);
-            });
-
-            const btnFaceDown = document.getElementById('btn-toggle-facedown');
-            const canPlayFaceDown = gameState.firstTrickOfGame && gameState.turn === 'PLAYER' && isLeading;
-
-            if (canPlayFaceDown) {
-                btnFaceDown.classList.remove('hidden');
-                document.getElementById('facedown-label').innerText = gameState.playFaceDownNext ? 'Verdeckt anspielen: AN' : 'Verdeckt anspielen: AUS';
-                btnFaceDown.className = gameState.playFaceDownNext
-                    ? 'px-3 py-1.5 md:px-4 md:py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs border border-amber-300 shadow-lg transition flex items-center gap-1.5'
-                    : 'px-3 py-1.5 md:px-4 md:py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-amber-300 font-bold text-xs border border-amber-500/40 shadow-lg transition flex items-center gap-1.5';
             } else {
-                btnFaceDown.classList.add('hidden');
+                promptEl.textContent = `${seatLabel(gameState.turn)} überlegt...`;
             }
+
+            // Action Bar
+            const btnFaceDown = document.getElementById('btn-toggle-facedown');
+            const faceDownLabel = document.getElementById('facedown-label');
+            const showFaceDownToggle = gameState.turn === 'player' && !gameState.isResolvingTrick && gameState.trickNumber === 1 && gameState.currentTrick.length === 0;
+            btnFaceDown.classList.toggle('hidden', !showFaceDownToggle);
+            faceDownLabel.textContent = `Verdeckt anspielen: ${gameState.faceDownLead ? 'AN' : 'AUS'}`;
 
             const btnSwap = document.getElementById('btn-swap-trump');
-            const swapHint = document.getElementById('trump-swap-hint');
-            const canSwap = canSwapTrump(gameState.hands.PLAYER) && gameState.teamTricks.US >= 1 && gameState.turn === 'PLAYER' && gameState.phase === 'TALON';
+            btnSwap.classList.toggle('hidden', !(gameState.turn === 'player' && !gameState.isResolvingTrick && canSwapTrump('player')));
 
-            if (canSwap) {
-                btnSwap.classList.remove('hidden');
-                swapHint.classList.remove('hidden');
+            const lastMeldEl = document.getElementById('last-meld-display');
+            if (gameState.lastMeldText) {
+                lastMeldEl.textContent = gameState.lastMeldText;
+                lastMeldEl.classList.remove('hidden');
             } else {
-                btnSwap.classList.add('hidden');
-                swapHint.classList.add('hidden');
-            }
-
-            const lastMeldDisplay = document.getElementById('last-meld-display');
-            if (lastMeldDisplay) {
-                if (gameState.lastMeld) {
-                    const meldText = gameState.lastMeld.isTrump ? 'Trumpf-Paar (40)' : 'Paar (20)';
-                    lastMeldDisplay.innerHTML = `📣 ${gameState.lastMeld.who}: ${meldText} – ${SUITS[gameState.lastMeld.suit].name}`;
-                    lastMeldDisplay.classList.remove('hidden');
-                } else {
-                    lastMeldDisplay.classList.add('hidden');
-                    lastMeldDisplay.innerHTML = '';
-                }
+                lastMeldEl.classList.add('hidden');
             }
 
             const meldContainer = document.getElementById('meld-buttons-container');
             meldContainer.innerHTML = '';
-
-            const allPairsInHand = [];
-            for (const suitKey in SUITS) {
-                if (gameState.hands.PLAYER.some(c => c.suit === suitKey && c.rank === 'KING') && gameState.hands.PLAYER.some(c => c.suit === suitKey && c.rank === 'OBER')) {
-                    allPairsInHand.push(suitKey);
-                }
-            }
-
-            if (gameState.turn === 'PLAYER' && gameState.phase === 'TALON' && gameState.teamTricks.US >= 1 && isLeading) {
-                const melds = getAvailableMelds(gameState.hands.PLAYER, 'US');
+            if (gameState.turn === 'player' && !gameState.isResolvingTrick) {
+                const melds = getAvailableMelds('player');
                 melds.forEach(m => {
                     const btn = document.createElement('button');
-                    btn.className = `px-3 py-2 rounded-xl font-black text-xs shadow-lg border-2 transition transform active:scale-95 hover:scale-105 flex items-center gap-1.5 touch-manipulation ${m.isTrump ? 'bg-amber-500 hover:bg-amber-400 text-slate-950 border-amber-200 animate-pulse' : 'bg-slate-800 hover:bg-slate-700 text-amber-300 border-amber-400'}`;
-                    btn.innerHTML = `<span>📣 Melden:</span> ${getSuitSVG(m.suit, 16)} <span>(${m.points} Pkt)</span>`;
-                    btn.addEventListener('click', () => declareMeld(m.suit));
+                    btn.className = 'px-3 py-1.5 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-black text-xs border border-amber-300 shadow-lg transition';
+                    btn.textContent = `📣 Melden: ${SUITS[m.suit].name} (${m.points} Pkt)`;
+                    btn.onclick = () => executeMeld('player', m.suit);
                     meldContainer.appendChild(btn);
                 });
-
-                const alreadyMelded = gameState.meldedSuits.US || [];
-                const repeated = allPairsInHand.filter(suitKey => alreadyMelded.includes(suitKey));
-                repeated.forEach(suitKey => {
-                    const info = document.createElement('span');
-                    info.className = 'px-2.5 py-1 rounded-xl bg-slate-900/70 border border-slate-700 text-slate-400 text-[11px] font-bold flex items-center gap-1.5';
-                    info.innerHTML = `<span>✓ Bereits gemeldet:</span> ${getSuitSVG(suitKey, 14)} <span>${SUITS[suitKey].name}</span>`;
-                    meldContainer.appendChild(info);
-                });
-            } else if (gameState.turn === 'PLAYER' && allPairsInHand.length > 0 && gameState.phase === 'TALON') {
-                const unmeldedPairs = allPairsInHand.filter(suitKey => !(gameState.meldedSuits.US || []).includes(suitKey));
-                if (unmeldedPairs.length > 0) {
-                    const hint = document.createElement('span');
-                    hint.className = 'px-2.5 py-1 rounded-xl bg-slate-900/80 border border-amber-500/30 text-amber-200/80 text-[11px] font-medium';
-                    hint.innerText = gameState.teamTricks.US < 1
-                        ? '💡 Paar auf der Hand – Melden möglich nach dem 1. eigenen Stich'
-                        : '💡 Paar auf der Hand – Melden beim eigenen Anspielen möglich';
-                    meldContainer.appendChild(hint);
-                }
             }
 
-            document.getElementById('last-trick-winner').innerText = gameState.lastTrickWinner || '-';
-        }
+            // Player Hand
+            const playerHandContainer = document.getElementById('player-hand-container');
+            playerHandContainer.innerHTML = '';
+            const legalCards = (gameState.turn === 'player' && !gameState.isResolvingTrick) ? getLegalCards('player') : [];
 
-        function toggleGameMode() {
-            gameState.mode = gameState.mode === '2P' ? '4P' : '2P';
-            startNewGame();
-        }
-
-        document.addEventListener('DOMContentLoaded', () => {
-            document.getElementById('btn-restart').addEventListener('click', startNewGame);
-            document.getElementById('btn-toggle-mode').addEventListener('click', toggleGameMode);
-            document.getElementById('btn-mode-mobile').addEventListener('click', toggleGameMode);
-            document.getElementById('btn-modal-restart').addEventListener('click', () => {
-                document.getElementById('modal-gameover').classList.add('hidden');
-                startNewGame();
-            });
-
-            document.getElementById('btn-swap-trump').addEventListener('click', () => {
-                swapTrumpCard('PLAYER');
-            });
-
-            document.getElementById('btn-toggle-facedown').addEventListener('click', () => {
-                gameState.playFaceDownNext = !gameState.playFaceDownNext;
-                updateUI();
-            });
-
-            const modalRules = document.getElementById('modal-rules');
-            document.getElementById('btn-rules').addEventListener('click', () => modalRules.classList.remove('hidden'));
-            document.getElementById('btn-close-rules').addEventListener('click', () => modalRules.classList.add('hidden'));
-            document.getElementById('btn-confirm-rules').addEventListener('click', () => modalRules.classList.add('hidden'));
-
-            const modalImpressum = document.getElementById('modal-impressum');
-            document.getElementById('btn-impressum').addEventListener('click', () => modalImpressum.classList.remove('hidden'));
-            document.getElementById('btn-close-impressum').addEventListener('click', () => modalImpressum.classList.add('hidden'));
-            document.getElementById('btn-confirm-impressum').addEventListener('click', () => modalImpressum.classList.add('hidden'));
-
-            const btnSound = document.getElementById('btn-sound');
-            const iconOn = document.getElementById('icon-sound-on');
-            const iconOff = document.getElementById('icon-sound-off');
-            btnSound.addEventListener('click', () => {
-                sound.enabled = !sound.enabled;
-                if (sound.enabled) {
-                    iconOn.classList.remove('hidden');
-                    iconOff.classList.add('hidden');
-                } else {
-                    iconOn.classList.add('hidden');
-                    iconOff.classList.remove('hidden');
+            gameState.hands.player.forEach(card => {
+                const isPlayable = legalCards.some(c => c.id === card.id);
+                const wrapper = document.createElement('div');
+                wrapper.className = `card-container cursor-pointer rounded-md ${isPlayable ? 'card-playable' : 'card-disabled disabled'}`;
+                wrapper.innerHTML = createCardSVG(card.suit, card.rank, true);
+                if (isPlayable) {
+                    wrapper.onclick = () => playCard('player', card.id, gameState.faceDownLead);
                 }
+                playerHandContainer.appendChild(wrapper);
             });
+        }
 
-            startNewGame();
-        });
+        // Event Listeners
+        document.getElementById('btn-restart').onclick = initGame;
+        document.getElementById('btn-play-again').onclick = initGame;
+
+        function toggleMode() {
+            gameMode = gameMode === '2P' ? '4P' : '2P';
+            initGame();
+        }
+        document.getElementById('btn-toggle-mode').onclick = toggleMode;
+        document.getElementById('btn-mode-mobile').onclick = toggleMode;
+
+        document.getElementById('btn-toggle-facedown').onclick = () => {
+            if (!gameState || gameState.turn !== 'player') return;
+            gameState.faceDownLead = !gameState.faceDownLead;
+            updateUI();
+        };
+
+        document.getElementById('btn-swap-trump').onclick = () => {
+            if (!gameState || gameState.turn !== 'player') return;
+            swapTrumpCard('player');
+        };
+
+        document.getElementById('talon-stack').onclick = () => {
+            if (gameState && gameState.turn === 'player' && canSwapTrump('player')) {
+                swapTrumpCard('player');
+            }
+        };
+
+        document.getElementById('btn-sound').onclick = () => {
+            soundEnabled = !soundEnabled;
+            document.getElementById('icon-sound-on').classList.toggle('hidden', !soundEnabled);
+            document.getElementById('icon-sound-off').classList.toggle('hidden', soundEnabled);
+        };
+
+        // Modals
+        const rulesModal = document.getElementById('modal-rules');
+        document.getElementById('btn-rules').onclick = () => rulesModal.classList.remove('hidden');
+        document.getElementById('btn-close-rules').onclick = () => rulesModal.classList.add('hidden');
+        document.getElementById('btn-confirm-rules').onclick = () => rulesModal.classList.add('hidden');
+
+        const impressumModal = document.getElementById('modal-impressum');
+        document.getElementById('btn-impressum').onclick = () => impressumModal.classList.remove('hidden');
+        document.getElementById('btn-close-impressum').onclick = () => impressumModal.classList.add('hidden');
+        document.getElementById('btn-confirm-impressum').onclick = () => impressumModal.classList.add('hidden');
+
+        window.onload = initGame;
     </script>
 </body>
 </html>
